@@ -3,6 +3,7 @@
 #include "colors.h"
 #include "die.h"
 #include "FileBrowser.h"
+#include "FileBrowserSort.h"
 
 void
 loop(void)
@@ -14,6 +15,10 @@ loop(void)
 	const char *curdir = al_get_current_directory();
 	ALLEGRO_BITMAP *backbuffer = al_get_backbuffer(display);
 	uint8_t fbmode;
+
+	fbsort_init();
+	filebrowser_set_hook(fb, FILEBROWSER_HOOK_DIRSORT, fbsort_dirs);
+	filebrowser_set_hook(fb, FILEBROWSER_HOOK_FILESORT, fbsort_file);
 
 	filebrowser_load_font(fb, FILEBROWSER_FONT_DEFAULT, DEFAULT_FONT,
 		DEFAULT_FONT_SIZE, DEFAULT_FONT_FLAG);
@@ -97,7 +102,7 @@ loop(void)
 			al_flip_display();
 		}
 	}
-
+	fbsort_cleanup();
 	filebrowser_destroy(fb);
 }
 

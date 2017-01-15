@@ -34,7 +34,8 @@ struct _afv_filebrowser {
 		off_t size;
 	} fileinfo;
 	struct {
-		void(*dirsort)(FILEBROWSER *fb);
+		void(*sort_dirs)(FILEBROWSER *fb);
+		void(*sort_file)(FILEBROWSER *fb);
 	} hook;
 };
 
@@ -221,8 +222,11 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 			}
 			al_close_directory(entry);
 
-			if (fb->hook.dirsort != NULL)
-				fb->hook.dirsort(fb);
+			if (fb->hook.sort_dirs != NULL)
+				fb->hook.sort_dirs(fb);
+
+			if (fb->hook.sort_file != NULL)
+				fb->hook.sort_file(fb);
 		}
 	}
 	else {
@@ -374,7 +378,7 @@ filebrowser_draw(FILEBROWSER *fb)
 	static long int selected;
 
 	assert(fb != NULL);
-	selected = fb->selected;
+	selected = (long)fb->selected;
 	switch (fb->drawmode) {
 	case FILEBROWSER_DRAW_DIRLIST:
 		filebrowser_draw_dirlist(fb);
@@ -464,7 +468,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	for (i = pos, count = vector_count(V); i < count && y1 < maxH; i++) {
 		assert(vector_get(V, i, &p));
 		cstr = al_get_path_component(p, -1);
-		al_ustr_truncate(ustr, ustr_offset);
+		al_ustr_truncate(ustr, (int)ustr_offset);
 		al_ustr_append_cstr(ustr, cstr);
 		if (i == selected) {
 			al_draw_filled_rectangle(x1, y1, x2, y2, sbg);
@@ -492,7 +496,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	for (k = i - count, count = vector_count(V); k < count && y1 < maxH; k++) {
 		assert(vector_get(V, k, &p));
 		cstr = al_get_path_filename(p);
-		al_ustr_truncate(ustr, ustr_offset);
+		al_ustr_truncate(ustr, (int)ustr_offset);
 		al_ustr_append_cstr(ustr, cstr);
 		if (selected == k) {
 			al_draw_filled_rectangle(x1, y1, x2, y2, sbg);
@@ -575,7 +579,21 @@ filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *))
 	switch (id) {
 	case FILEBROWSER_HOOK_DIRSORT:
 		assert(hook != NULL);
-		fb->hook.dirsort = hook;
+		fb->hook.sort_dirs = hook;
+		break;
+	case FILEBROWSER_HOOK_FILESORT:
+		assert(hook != NULL);
+		fb->hook.sort_file = hook;
 		break;
 	}
+}
+
+void
+filebrowser_sort(FILEBROWSER *fb, uint8_t type,
+	int (*cmp)(const void *, const void *))
+{
+	if (type)
+		vector_qsort(fb->f, cmp);
+	else
+		vector_qsort(fb->d, cmp);
 }

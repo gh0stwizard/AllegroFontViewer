@@ -3,9 +3,9 @@
 
 #include "engine.h"
 
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct _afv_filebrowser FILEBROWSER;
 typedef enum _afv_filebrowser_font_id FILEBROWSER_FONT_ID;
@@ -38,7 +38,8 @@ enum {
 };
 
 enum {
-	FILEBROWSER_HOOK_DIRSORT	= 0x01
+	FILEBROWSER_HOOK_DIRSORT	= 0x01,
+	FILEBROWSER_HOOK_FILESORT	= 0x02
 };
 
 
@@ -92,8 +93,12 @@ filebrowser_draw_mode(FILEBROWSER *fb, uint8_t mode);
 void
 filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *));
 
-//#ifdef __cplusplus
-//}
-//#endif
+void
+filebrowser_sort(FILEBROWSER *fb, uint8_t type,
+	int(*cmp)(const void *, const void *));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _AFV_FILEBROWSER_H__ */
