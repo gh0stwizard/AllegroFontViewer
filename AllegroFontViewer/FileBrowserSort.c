@@ -13,11 +13,6 @@
 #include "unicode/ucnv.h"
 #include "unicode/ucol.h"
 
-#define UCHAR_BUFFER_SIZE 2048
-
-#if defined(_DEBUG)
-static UConverter *cnv;
-#endif
 
 static UCollator *coll;
 
@@ -64,12 +59,6 @@ fbsort_init(void)
 		return false;
 	}
 
-#if defined(_DEBUG)
-	error = U_ZERO_ERROR;
-	cnv = ucnv_open("cp866", &error);
-	assert(U_SUCCESS(error));
-#endif
-
 	error = U_ZERO_ERROR;
 	coll = ucol_open("en-u-kn-true", &error);
 	assert(U_SUCCESS(error));
@@ -81,9 +70,6 @@ void
 fbsort_cleanup(void)
 {
 	ucol_close(coll);
-#if defined(_DEBUG)
-	ucnv_close(cnv);
-#endif
 }
 
 void
