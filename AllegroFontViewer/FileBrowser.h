@@ -3,10 +3,6 @@
 
 #include "engine.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct _afv_filebrowser FILEBROWSER;
 typedef enum _afv_filebrowser_font_id FILEBROWSER_FONT_ID;
 typedef enum _afv_filebrowser_color_id FILEBROWSER_COLOR_ID;
@@ -42,14 +38,13 @@ enum {
 	FILEBROWSER_HOOK_FILESORT	= 0x02
 };
 
-
 FILEBROWSER *
 filebrowser_new(int width, int height);
 
 void
 filebrowser_destroy(FILEBROWSER * fb);
 
-ALLEGRO_BITMAP *
+const ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb);
 
 bool
@@ -97,8 +92,8 @@ void
 filebrowser_sort(FILEBROWSER *fb, uint8_t type,
 	int(*cmp)(const void *, const void *));
 
-#ifdef __cplusplus
-}
-#endif
+ALLEGRO_PATH *
+filebrowser_get_selected_path(FILEBROWSER *fb);
+
 
 #endif /* _AFV_FILEBROWSER_H__ */

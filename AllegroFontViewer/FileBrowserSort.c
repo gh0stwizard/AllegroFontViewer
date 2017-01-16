@@ -1,11 +1,6 @@
 #include "FileBrowserSort.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <locale.h>
 #include <assert.h>
-#include <errno.h>
 #include "unicode/uclean.h"
 #include "unicode/putil.h"
 #include "unicode/ustring.h"
@@ -13,6 +8,8 @@
 #include "unicode/ucnv.h"
 #include "unicode/ucol.h"
 
+
+#define COLLATOR_MODE "en-u-kn-true"
 
 static UCollator *coll;
 
@@ -46,21 +43,16 @@ cmp_file(const void *a, const void *b)
 	return retval;
 }
 
-#define CARP(str) (fprintf(stderr, "%s: %s at line %d", __func__, (str), __LINE__))
-
 bool
 fbsort_init(void)
 {
 	UErrorCode error = U_ZERO_ERROR;
 
 	u_init(&error);
-	if (U_FAILURE(error)) {
-		CARP(u_errorName(error));
-		return false;
-	}
+	assert(U_SUCCESS(error));
 
 	error = U_ZERO_ERROR;
-	coll = ucol_open("en-u-kn-true", &error);
+	coll = ucol_open(COLLATOR_MODE, &error);
 	assert(U_SUCCESS(error));
 
 	return true;

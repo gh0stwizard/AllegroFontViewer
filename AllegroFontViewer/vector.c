@@ -189,6 +189,9 @@ vector_free_contents(VECTOR *l)
 bool
 vector_reset(VECTOR *l)
 {
+	for (size_t i = 0, max = l->count; i < max; i++)
+		l->data[i] = NULL;
+
 	void **temp = realloc(l->data, sizeof(void *) * VECTOR_INIT_SIZE);
 	if (temp != NULL) {
 		l->data = temp;

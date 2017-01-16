@@ -138,6 +138,7 @@
     <ClCompile Include="die.c" />
     <ClCompile Include="FileBrowser.c" />
     <ClCompile Include="FileBrowserSort.c" />
+    <ClCompile Include="FontViewer.c" />
     <ClCompile Include="init.c" />
     <ClCompile Include="loop.c" />
     <ClCompile Include="main.c" />
@@ -154,6 +155,7 @@
     <ClInclude Include="engine.h" />
     <ClInclude Include="FileBrowser.h" />
     <ClInclude Include="FileBrowserSort.h" />
+    <ClInclude Include="FontViewer.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="messagebox.h" />

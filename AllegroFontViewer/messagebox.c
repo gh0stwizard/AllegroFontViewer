@@ -2,7 +2,7 @@
 #include "messagebox.h"
 #include <string.h>
 
-static void
+void
 mbox_warn_al_error(const char *header)
 {
 #if defined(_WIN32) || defined(_WIN64)
@@ -19,7 +19,7 @@ mbox_warn_al_error(const char *header)
 #endif
 }
 
-static void
+void
 mbox_note(const char *header, const char *message)
 {
 	al_show_native_message_box(NULL, "Notification", header, message, 

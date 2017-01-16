@@ -306,10 +306,12 @@ static void
 filebrowser_reset_vector(VECTOR *V)
 {
 	static size_t i, count;
+	static ALLEGRO_PATH *p;
+
 	for (i = 0, count = vector_count(V); i < count; i++) {
-		ALLEGRO_PATH *p;
 		assert(vector_get(V, i, &p));
 		al_destroy_path(p);
+		p = NULL;
 	}
 	assert(vector_reset(V));
 }
@@ -513,7 +515,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	al_ustr_free(ustr);
 }
 
-ALLEGRO_BITMAP *
+const ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb)
 {
 	return fb->b;
@@ -596,4 +598,13 @@ filebrowser_sort(FILEBROWSER *fb, uint8_t type,
 		vector_qsort(fb->f, cmp);
 	else
 		vector_qsort(fb->d, cmp);
+}
+
+ALLEGRO_PATH *
+filebrowser_get_selected_path(FILEBROWSER *fb)
+{
+	assert(fb != NULL);
+	ALLEGRO_PATH *p;
+	assert(vector_get(fb->f, fb->selected - vector_count(fb->d), &p));
+	return al_clone_path(p);
 }
