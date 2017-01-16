@@ -74,6 +74,13 @@ filebrowser_new(int width, int height)
 	fb->colors[FILEBROWSER_COLOR_SELECT_BG] = COLOR_BRIGHT_CYAN;
 	fb->colors[FILEBROWSER_COLOR_SELECT_FG] = COLOR_NORMAL_BLACK;
 
+	fb->colors[FILEBROWSER_COLOR_FONT_TTF_BG] = COLOR_NORMAL_BLACK;
+	fb->colors[FILEBROWSER_COLOR_FONT_TTF_FG] = COLOR_NORMAL_BLUE;
+
+	fb->colors[FILEBROWSER_COLOR_FONT_OTF_BG] = COLOR_NORMAL_BLACK;
+	fb->colors[FILEBROWSER_COLOR_FONT_OTF_FG] = COLOR_BRIGHT_BLUE;
+
+
 	fb->px = 5;
 	fb->py = 2;
 
@@ -264,6 +271,7 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 		}
 	}
 	else {
+		/* when the user selects a file we store information about it */
 		ALLEGRO_PATH *p = al_create_path(path);
 		if (fb->fileinfo.name != NULL) {
 			ALLEGRO_USTR *n = fb->fileinfo.name;
@@ -483,6 +491,12 @@ filebrowser_draw(FILEBROWSER *fb)
 	}
 }
 
+#if defined(ALLEGRO_WINDOWS)
+#define CMP(s1, s2, count) (_strnicmp((s1), (s2), (count)))
+#else
+#define CMP(s1, s2, count) (strnicmp((s1), (s2), (count)))
+#endif
+
 void
 filebrowser_draw_dirlist(FILEBROWSER *fb)
 {
@@ -503,8 +517,10 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	static int epx, epy; /* element padding */
 	static int eH; /* total height of an element */
 
-	static ALLEGRO_COLOR bg, fg;	/* colors for an el. */
+	static ALLEGRO_COLOR bg, fg;	/* colors for an el. (default) */
 	static ALLEGRO_COLOR sbg, sfg;	/* same as above for the selected el. */
+	static ALLEGRO_COLOR ttf_bg, ttf_fg;
+	static ALLEGRO_COLOR otf_bg, otf_fg;
 
 	assert(fb != NULL);
 	F = fb->fonts[FILEBROWSER_FONT_DEFAULT].font;
@@ -542,6 +558,15 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 
 	bg = fb->colors[FILEBROWSER_COLOR_DIR_BG];
 	fg = fb->colors[FILEBROWSER_COLOR_DIR_FG];
+
+	ttf_bg = fb->colors[FILEBROWSER_COLOR_FONT_TTF_BG];
+	ttf_fg = fb->colors[FILEBROWSER_COLOR_FONT_TTF_FG];
+	otf_bg = fb->colors[FILEBROWSER_COLOR_FONT_OTF_BG];
+	otf_fg = fb->colors[FILEBROWSER_COLOR_FONT_OTF_FG];
+
+	/* in case if something changed in the previous directory */
+	if (fb->selected >= (vector_count(fb->d) + vector_count(fb->f)))
+		fb->selected = fb->startpos = 0;
 
 	/* count starting position */
 	pos = fb->startpos;
@@ -599,8 +624,19 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 			al_draw_ustr(F, sfg, fx, fy, 0, ustr);
 		}
 		else {
-			al_draw_filled_rectangle(x1, y1, x2, y2, bg);
-			al_draw_ustr(F, fg, fx, fy, 0, ustr);
+			const char *ext = al_get_path_extension(p);
+			if (CMP(ext, ".ttf", 5) == 0) {
+				al_draw_filled_rectangle(x1, y1, x2, y2, ttf_bg);
+				al_draw_ustr(F, ttf_fg, fx, fy, 0, ustr);
+			}
+			else if (CMP(ext, ".otf", 5) == 0) {
+				al_draw_filled_rectangle(x1, y1, x2, y2, otf_bg);
+				al_draw_ustr(F, otf_fg, fx, fy, 0, ustr);
+			}
+			else {
+				al_draw_filled_rectangle(x1, y1, x2, y2, bg);
+				al_draw_ustr(F, fg, fx, fy, 0, ustr);
+			}
 		}
 		y1 = y2 + epy;
 		y2 = y1 + eH;
@@ -699,8 +735,16 @@ filebrowser_sort(FILEBROWSER *fb, uint8_t type,
 ALLEGRO_PATH *
 filebrowser_get_selected_path(FILEBROWSER *fb)
 {
+	static ALLEGRO_PATH *p;
+	static size_t count_d, selected;
+
 	assert(fb != NULL);
-	ALLEGRO_PATH *p;
-	assert(vector_get(fb->f, fb->selected - vector_count(fb->d), &p));
-	return al_clone_path(p);
+	selected = fb->selected;
+	count_d = vector_count(fb->d);
+	if (selected >= count_d) {
+		assert(vector_get(fb->f, selected - count_d, &p));
+		return al_clone_path(p);
+	}
+	else
+		return NULL;
 }

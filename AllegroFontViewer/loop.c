@@ -65,16 +65,18 @@ loop(void)
 				break;
 			case ALLEGRO_KEY_L:
 				alpath = filebrowser_get_selected_path(browser);
-				pathstr = al_path_cstr(alpath, ALLEGRO_NATIVE_PATH_SEP);
-				result = fontviewer_load(viewer, pathstr);
-				if (result) {
-					fontviewer_draw(viewer);
-					draw(fontviewer_bitmap(viewer));
+				if (alpath != NULL) {
+					pathstr = al_path_cstr(alpath, ALLEGRO_NATIVE_PATH_SEP);
+					result = fontviewer_load(viewer, pathstr);
+					if (result) {
+						fontviewer_draw(viewer);
+						draw(fontviewer_bitmap(viewer));
+					}
+					else {
+						mbox_note("font error", pathstr);
+					}
+					al_destroy_path(alpath);
 				}
-				else {
-					mbox_note("font error", pathstr);
-				}
-				al_destroy_path(alpath);
 				break;
 			case ALLEGRO_KEY_PGUP:
 				redraw = filebrowser_select_prev_items(browser, 
