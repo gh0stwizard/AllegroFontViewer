@@ -167,8 +167,11 @@ fontviewer_draw(FONTVIEWER *fv)
 	for (i = 0; i < count && z < maxH; i++) {
 		if (vector_get(V, i, &F)) {
 			al_ustr_truncate(U, 0);
-			//sprintf_s(str, size, "%02zu This is just a font", minsize + i);
+#if defined(_WIN32) || defined (_WIN64)
 			sprintf_s(str, size, NOTE);
+#else
+			sprintf(str, NOTE);
+#endif
 			al_ustr_append_cstr(U, str);
 			al_draw_ustr(F, fg, x, y, 0, U);
 			y += (int)i + minsize + py;
