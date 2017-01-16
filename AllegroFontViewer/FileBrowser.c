@@ -38,6 +38,11 @@ struct _afv_filebrowser {
 		void(*sort_dirs)(FILEBROWSER *fb);
 		void(*sort_file)(FILEBROWSER *fb);
 	} hook;
+	struct {
+		size_t selected;
+		size_t startpos;
+		ALLEGRO_PATH *p;
+	} previous;
 };
 
 FILEBROWSER *
@@ -115,6 +120,10 @@ filebrowser_destroy(FILEBROWSER * fb)
 	if (fb->f)
 		vector_destroy(fb->f);
 
+	if (fb->previous.p != NULL)
+		al_destroy_path(fb->previous.p);
+	fb->previous.p = NULL;
+
 	fb->b = NULL;
 	fb->f = NULL;
 	fb->d = NULL;
@@ -190,6 +199,7 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 	static uint32_t emode;
 	static bool retval;
 	extern int fs_entry_cb(ALLEGRO_FS_ENTRY *, void *);
+	static size_t selected, startpos; /* temp. buffer for new values */
 
 	assert(path != NULL);
 	entry = al_create_fs_entry(path);
@@ -204,14 +214,34 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 				goto done;
 		}
 
-		/* always reset to first el. */
-		fb->selected = 0;
-		fb->startpos = 0;
-		fb->eldrawed = 0;
+		/* Compare the old directory with current one and
+		 * if we were here before then restore the position.
+		 */
+		selected = 0;
+		startpos = 0;
+		if (fb->previous.p != NULL) {
+			const char *old = 
+				al_path_cstr(fb->previous.p, ALLEGRO_NATIVE_PATH_SEP);
+			if (memcmp(old, path, strlen(path)) == 0) {
+				selected = fb->previous.selected;
+				startpos = fb->previous.startpos;
+			}
+		}
 
-		/* no need to keep previous path anymore */
-		if (fb->curdir != NULL)
-			al_destroy_path(fb->curdir);
+		/* remember old directory & position */
+		if (fb->curdir != NULL) {
+			fb->previous.selected = fb->selected;
+			fb->previous.startpos = fb->startpos;
+			if (fb->previous.p != NULL)
+				al_destroy_path(fb->previous.p);
+			fb->previous.p = fb->curdir;
+		}
+
+		/* restore/reset current values */
+		fb->selected = selected;
+		fb->startpos = startpos;
+		fb->eldrawed = 0;
+		/* remember current directory path */
 		fb->curdir = al_create_path_for_directory(path);
 
 		if (al_open_directory(entry)) {
