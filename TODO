@@ -7,3 +7,4 @@
 	* keyboard shortcuts
 	* a gamepad support
 	* font & its size for UI (dir. listing, fileinfo)
+* fast changing of the selected file via PgUp/PgDown keys
