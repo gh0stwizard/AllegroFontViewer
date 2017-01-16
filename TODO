@@ -1,6 +1,6 @@
 * read/write settings from/to the ini-file
-* show a size of the font when drawing it
-* ability to type any text when displaying the font
+* show a size of the font near a text when drawing it
+* an abillity to type any text when displaying the choosed font
 * customization support:
 	* colors (directory listing, font drawing)
 	* window resize + fullscreen support
@@ -8,3 +8,4 @@
 	* a gamepad support
 	* font & its size for UI (dir. listing, fileinfo)
 * fast changing of the selected file via PgUp/PgDown keys
+* support for favorite fonts
