@@ -7,5 +7,8 @@
 	* keyboard shortcuts
 	* a gamepad support
 	* font & its size for UI (dir. listing, fileinfo)
-* fast changing of the selected file via PgUp/PgDown keys
+V fast changing of the selected file via PgUp/PgDown keys
+	* abillity to customize this setting
 * support for favorite fonts
+* better error notification support
+* when changing dirs remember previous selected dir. position

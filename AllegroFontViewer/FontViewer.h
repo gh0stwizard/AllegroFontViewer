@@ -10,7 +10,7 @@ void fontviewer_destroy(FONTVIEWER *fv);
 bool fontviewer_load(FONTVIEWER *fv, const char *file);
 void fontviewer_unload(FONTVIEWER *fv);
 void fontviewer_draw(FONTVIEWER *fv);
-const ALLEGRO_BITMAP * fontviewer_bitmap(FONTVIEWER *fv);
+ALLEGRO_BITMAP * fontviewer_bitmap(FONTVIEWER *fv);
 
 
 #endif /* _AFV_FONTVIEWER_H__ */

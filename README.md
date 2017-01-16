@@ -10,6 +10,7 @@ Yet another basic Font Viewer based on Allegro 5.
 * `L`: try to load selected file as a font and show it.
 * `Esc`: exit from the program.
 * `Space`: draw the directory listing (again)
+* `PgUp`, `PgDown`: fast navigation in the directory listing mode.
 
 ## Dependecies
 

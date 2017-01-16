@@ -23,6 +23,7 @@ struct _afv_filebrowser {
 	VECTOR *d; /* An array of ALLEGRO_PATH* for directories */
 	VECTOR *f; /* An array of ALLEGRO_PATH* for files */
 	size_t selected; /* index of the selected _directory_ element */
+	size_t eldrawed; /* amount of elements drawed last time */
 	size_t startpos;
 	int px, py; /* padding for an element */
 	ALLEGRO_PATH *curdir;
@@ -77,6 +78,8 @@ filebrowser_new(int width, int height)
 	fb->prefix.file = al_ustr_new(" ");
 
 	fb->drawmode = FILEBROWSER_DRAW_DIRLIST;
+
+	fb->eldrawed = 0;
 
 	return fb;
 }
@@ -204,6 +207,7 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 		/* always reset to first el. */
 		fb->selected = 0;
 		fb->startpos = 0;
+		fb->eldrawed = 0;
 
 		/* no need to keep previous path anymore */
 		if (fb->curdir != NULL)
@@ -358,6 +362,35 @@ filebrowser_select_prev(FILEBROWSER *fb)
 }
 
 bool
+filebrowser_select_prev_items(FILEBROWSER *fb, int percent)
+{
+	static size_t count, selected, op;
+
+	assert(fb != NULL);
+
+	count = vector_count(fb->d) + vector_count(fb->f);
+	selected = fb->selected;
+
+	if (count == 0)
+		return false;
+
+	if ((percent <= 0) || (percent > 100))
+		return false;
+
+	op = (fb->eldrawed * percent) / 100;
+
+	if (op == 0)
+		op = 1;
+
+	if (selected >= op)
+		fb->selected -= op;
+	else
+		fb->selected = 0;
+
+	return true;
+}
+
+bool
 filebrowser_select_next(FILEBROWSER *fb)
 {
 	static size_t count, selected;
@@ -371,6 +404,35 @@ filebrowser_select_next(FILEBROWSER *fb)
 	}
 	else
 		return false;
+}
+
+bool
+filebrowser_select_next_items(FILEBROWSER *fb, int percent)
+{
+	static size_t count, selected, op;
+
+	assert(fb != NULL);
+
+	count = vector_count(fb->d) + vector_count(fb->f);
+	selected = fb->selected;
+
+	if (count == 0)
+		return false;
+
+	if ((percent <= 0) || (percent > 100))
+		return false;
+
+	op = (fb->eldrawed * percent) / 100;
+
+	if (op == 0)
+		op = 1;
+
+	if ((selected + op) >= count)
+		fb->selected = count - 1;
+	else
+		fb->selected += op;
+
+	return true;
 }
 
 void
@@ -396,7 +458,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 {
 	static ALLEGRO_FONT *F;
 	static VECTOR *V;
-	static size_t i, k, count, selected, pos, maxel;
+	static size_t i, k, count, selected, pos, maxel, drawed;
 	static const char *cstr;
 	static ALLEGRO_USTR *ustr;
 	static size_t ustr_offset;
@@ -467,6 +529,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	/* output directories with their own prefix :) */
 	ustr = al_ustr_dup(fb->prefix.dir);
 	ustr_offset = al_ustr_size(ustr);
+	drawed = 0;
 	for (i = pos, count = vector_count(V); i < count && y1 < maxH; i++) {
 		assert(vector_get(V, i, &p));
 		cstr = al_get_path_component(p, -1);
@@ -483,6 +546,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 		y1 = y2 + epy;
 		y2 = y1 + eH;
 		fy = y1 + fpy;
+		drawed++;
 	}
 	/* drawing files... */
 	V = fb->f;
@@ -511,11 +575,13 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 		y1 = y2 + epy;
 		y2 = y1 + eH;
 		fy = y1 + fpy;
+		drawed++;
 	}
 	al_ustr_free(ustr);
+	fb->eldrawed = drawed;
 }
 
-const ALLEGRO_BITMAP *
+ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb)
 {
 	return fb->b;

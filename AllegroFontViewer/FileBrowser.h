@@ -44,7 +44,7 @@ filebrowser_new(int width, int height);
 void
 filebrowser_destroy(FILEBROWSER * fb);
 
-const ALLEGRO_BITMAP *
+ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb);
 
 bool
@@ -71,7 +71,13 @@ bool
 filebrowser_select_prev(FILEBROWSER *fb);
 
 bool
+filebrowser_select_prev_items(FILEBROWSER *fb, int percent);
+
+bool
 filebrowser_select_next(FILEBROWSER *fb);
+
+bool
+filebrowser_select_next_items(FILEBROWSER *fb, int percent);
 
 void
 filebrowser_draw(FILEBROWSER *fb);

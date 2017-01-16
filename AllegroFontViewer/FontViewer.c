@@ -187,7 +187,7 @@ fontviewer_draw(FONTVIEWER *fv)
 	free(str);
 }
 
-const ALLEGRO_BITMAP *
+ALLEGRO_BITMAP *
 fontviewer_bitmap(FONTVIEWER *fv)
 {
 	return fv->b;
