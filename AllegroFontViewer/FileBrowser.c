@@ -212,8 +212,10 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 	entry = al_create_fs_entry(path);
 	retval = false;
 
-	if (!al_fs_entry_exists(entry))
+	if (!al_fs_entry_exists(entry)) {
+		fprintf(stderr, "not exists: %s\n", path);
 		goto done;
+	}
 
 	if (al_get_fs_entry_mode(entry) & ALLEGRO_FILEMODE_ISDIR) {
 		if (fb->changedir) {
