@@ -17,6 +17,7 @@ struct _afv_fontviewer {
 	ALLEGRO_PATH *path;
 	struct { int onload; } flag;
 	bool unload_first;
+	bool drawed;
 };
 
 FONTVIEWER *
@@ -131,7 +132,7 @@ fontviewer_draw(FONTVIEWER *fv)
 	static size_t i, count, size;
 	static ALLEGRO_USTR *U;
 	static ALLEGRO_COLOR bg, fg;
-	static const char *str;
+	static char *str;
 	static int x, y, maxH, minsize, maxsize, px, py, z;
 
 	assert(fv != NULL);
@@ -153,7 +154,11 @@ fontviewer_draw(FONTVIEWER *fv)
 	maxsize = fv->maxsize;
 
 	count = vector_count(V);
-	assert(count > 0);
+	if (count == 0) {
+		fv->drawed = false;
+		return;
+	}
+	fv->drawed = true;
 
 	/* start drawing */
 	al_set_target_bitmap(fv->b);
@@ -168,7 +173,7 @@ fontviewer_draw(FONTVIEWER *fv)
 		if (vector_get(V, i, &F)) {
 			al_ustr_truncate(U, 0);
 #if defined(_WIN32) || defined (_WIN64)
-			sprintf_s(str, size, NOTE);
+			sprintf_s(str, (const size_t)size, NOTE);
 #else
 			sprintf(str, NOTE);
 #endif
@@ -190,5 +195,13 @@ fontviewer_draw(FONTVIEWER *fv)
 ALLEGRO_BITMAP *
 fontviewer_bitmap(FONTVIEWER *fv)
 {
+	assert(fv != NULL);
 	return fv->b;
+}
+
+bool
+fontviewer_is_drawn(FONTVIEWER *fv)
+{
+	assert(fv != NULL);
+	return fv->drawed;
 }

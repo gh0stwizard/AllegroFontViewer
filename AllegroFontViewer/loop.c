@@ -63,6 +63,10 @@ loop(void)
 				done = true;
 				redraw = false;
 				break;
+			case ALLEGRO_KEY_F:
+				if (fontviewer_is_drawn(viewer))
+					draw(fontviewer_bitmap(viewer));
+				break;
 			case ALLEGRO_KEY_L:
 				alpath = filebrowser_get_selected_path(browser);
 				if (alpath != NULL) {

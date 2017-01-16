@@ -10,8 +10,11 @@
 V fast navigation via PgUp/PgDown keys
 	* abillity to customize this setting
 * support for favorite fonts
+	* add abillity to create notes/comments for the choosed fonts
 * better error notification support
 V when navigating between dirs remember previous selected directory position
 V color highlight support for known allegro's font extensions in browsing mode
-* create an icon for the app.
+V create an icon for the app.
 * ask user confirmation when trying to load image files (bmp, png, etc)
+* switch between previous mode and current one by pressing the SPACE key
+* add a magnifier for the view font mode
