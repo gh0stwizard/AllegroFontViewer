@@ -27,8 +27,11 @@ loop(void)
 	bool redraw = false, done = false;
 	const int fast_browse_percent = 50;
 
-	browser = filebrowser_new(SCREEN_W, SCREEN_H);
-	viewer = fontviewer_new(SCREEN_W, SCREEN_H);
+	int w = CFG->display.w;
+	int h = CFG->display.h;
+
+	browser = filebrowser_new(w, h);
+	viewer = fontviewer_new(w, h);
 	backbuffer = al_get_backbuffer(display);
 
 #ifndef _NO_ICU
@@ -37,8 +40,12 @@ loop(void)
 	filebrowser_set_hook(browser, FILEBROWSER_HOOK_FILESORT, fbsort_file);
 #endif
 
-	filebrowser_load_font(browser, FILEBROWSER_FONT_DEFAULT, DEFAULT_FONT,
-		DEFAULT_FONT_SIZE, DEFAULT_FONT_FLAG);
+	filebrowser_load_font(browser, FILEBROWSER_FONT_DEFAULT, 
+		CFG->fonts[FONT_DEFAULT].file,
+		CFG->fonts[FONT_DEFAULT].size,
+		CFG->fonts[FONT_DEFAULT].flags);
+
+	filebrowser_set_colors(browser, CFG->browser.colors);
 
 	/* show current directory listing immediatly */
 	draw_curdir();
@@ -62,6 +69,12 @@ loop(void)
 			case ALLEGRO_KEY_ESCAPE:
 				done = true;
 				redraw = false;
+				break;
+			case ALLEGRO_KEY_R:
+				config_destroy(CFG);
+				CFG = config_new(NULL);
+				filebrowser_set_colors(browser, CFG->browser.colors);
+				redraw = true;
 				break;
 			case ALLEGRO_KEY_F:
 				if (fontviewer_is_drawn(viewer))

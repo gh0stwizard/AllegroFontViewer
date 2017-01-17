@@ -4,26 +4,18 @@
 #include <assert.h>
 #include <stdio.h>
 
-static void set_window_title(void);
 static void set_window_icon(void);
-static void set_default_font(void);
 
 void
 init(void)
 {
-	if (!config_init(NULL))
-		die("Failed to load configuration files");
+	CFG = config_new(NULL);
 
 	if (!al_init())
 		die("Failed to initialize Allegro.");
-
-	{
-		int w, h;
-		config_get_value("display", "width", CONFIG_AS_INT, &w);
-		config_get_value("display", "height", CONFIG_AS_INT, &h);
-		if (!(display = al_create_display(w, h)))
-			die("Failed to create display");
-	}
+	
+	if (!(display = al_create_display(CFG->display.w, CFG->display.h)))
+		die("Failed to create display");
 
 	/* install perepherial */
 
@@ -52,12 +44,8 @@ init(void)
 	/* allocate resources */
 
 	/* timers */
-	{
-		float fps;
-		config_get_value("display", "rate", CONFIG_AS_FLOAT, &fps);
-		if (!(timers[TIMER_MAIN] = al_create_timer(1.0 / fps)))
-			die("Failed to create main timer");
-	}
+	if (!(timers[TIMER_MAIN] = al_create_timer(1.0 / CFG->display.rate)))
+		die("Failed to create main timer");
 
 	/* initialize events */
 
@@ -69,9 +57,8 @@ init(void)
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
 
 	/* last steps */
-	set_window_title();
+	al_set_window_title(display, CFG->window.title);
 	set_window_icon();
-	set_default_font();
 
 	for (int i = 0; i < TIMER_MAX; i++) {
 		al_register_event_source(event_queue,
@@ -79,16 +66,10 @@ init(void)
 	}
 }
 
-inline static void
-set_window_title(void)
-{
-	al_set_window_title(display, config_get_value("window", "title", 0, NULL));
-}
-
 static void
 set_window_icon(void)
 {
-	const char *icon = config_get_value("window", "icon", 0, NULL);
+	const char *icon = CFG->window.icon;
 
 	if (al_filename_exists(icon)) {
 		if (!(bitmaps[BITMAP_ICON] = al_load_bitmap(icon)))
@@ -96,22 +77,4 @@ set_window_icon(void)
 
 		al_set_display_icon(display, bitmaps[BITMAP_ICON]);
 	}
-}
-
-static void
-set_default_font(void)
-{
-#define SECTION "font:default"
-	int size;
-	const char *file = config_get_value(SECTION, "file", 0, NULL);
-	config_get_value(SECTION, "file", CONFIG_AS_INT, &size);
-
-	if (al_filename_exists(file)) {
-		if (!(fonts[FONT_DEFAULT] = al_load_font(file, size, 0)))
-			die("Failed to load default font");
-	}
-	else
-		die("Failed to find default font");
-
-#undef SECTION
 }

@@ -31,11 +31,8 @@ enum _afv_filebrowser_color_id {
 };
 
 enum {
-	FILEBROWSER_DRAW_INVLID		= 0x00,
 	FILEBROWSER_DRAW_DIRLIST	= 0x01,
-	FILEBROWSER_DRAW_FILEINFO	= 0x02,
-	FILEBROWSER_DRAW_ERROR		= 0x03,
-	FILEBROWSER_DRAW_MAX
+	FILEBROWSER_DRAW_FILEINFO	= 0x02
 };
 
 enum {
@@ -105,6 +102,9 @@ filebrowser_sort(FILEBROWSER *fb, uint8_t type,
 
 ALLEGRO_PATH *
 filebrowser_get_selected_path(FILEBROWSER *fb);
+
+void
+filebrowser_set_colors(FILEBROWSER *fb, ALLEGRO_COLOR list[]);
 
 
 #endif /* _AFV_FILEBROWSER_H__ */

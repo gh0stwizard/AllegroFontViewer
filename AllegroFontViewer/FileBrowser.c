@@ -12,7 +12,7 @@ struct _afv_filebrowser_font {
 	ALLEGRO_FONT *font;
 	int size;
 	int flags;
-	int px, py;
+	int px, py; /* TODO: replace to better place */
 };
 
 struct _afv_filebrowser {
@@ -752,4 +752,14 @@ filebrowser_get_selected_path(FILEBROWSER *fb)
 	}
 	else
 		return NULL;
+}
+
+void
+filebrowser_set_colors(FILEBROWSER *fb, ALLEGRO_COLOR list[])
+{
+	assert(fb != NULL);
+
+	for (int i = 0; i < FILEBROWSER_COLOR_MAX; i++) {
+		fb->colors[i] = list[i];
+	}
 }

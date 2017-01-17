@@ -3,22 +3,14 @@
 
 #include "engine.h"
 #include "utils.h"
-
-#define WINDOW_TITLE	"Allegro Font Viewer"
-#define ICON_FILE		"icon.bmp"
-#define SCREEN_W		640
-#define SCREEN_H		480
-#define FPS				60.0
-
-//#define DEFAULT_FONT		"fonts/droid/DroidSansMono.ttf"
-#define DEFAULT_FONT		"fonts/noto/mono/NotoMono-Regular.ttf"
-#define DEFAULT_FONT_SIZE	14
-#define DEFAULT_FONT_FLAG	0
+#include "config.h"
 
 ALLEGRO_TRANSFORM		*camera;
 ALLEGRO_DISPLAY			*display;
 ALLEGRO_EVENT_QUEUE		*event_queue;
 ALLEGRO_MONITOR_INFO	*monitor;
+
+CONFIG *CFG;
 
 enum {
 	TIMER_MAIN,
@@ -32,10 +24,6 @@ enum {
 };
 ALLEGRO_BITMAP			*bitmaps[BITMAP_MAX];
 
-enum {
-	FONT_DEFAULT,
-	FONT_MAX
-};
 ALLEGRO_FONT			*fonts[FONT_MAX];
 
 void init(void);

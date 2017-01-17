@@ -83,6 +83,7 @@
     <Allegro_LibraryType>DynamicDebug</Allegro_LibraryType>
     <Allegro_AddonDialog>true</Allegro_AddonDialog>
     <Allegro_AddonFont>true</Allegro_AddonFont>
+    <Allegro_AddonColor>true</Allegro_AddonColor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Allegro_LibraryType>DynamicRelease</Allegro_LibraryType>

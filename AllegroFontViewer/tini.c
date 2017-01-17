@@ -28,5 +28,5 @@ tini(void)
 	if (display != NULL)
 		al_destroy_display(display);
 
-	config_cleanup();
+	config_destroy(CFG);
 }
