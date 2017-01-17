@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="config.c" />
     <ClCompile Include="die.c" />
     <ClCompile Include="FileBrowser.c" />
     <ClCompile Include="FileBrowserSort.c" />
@@ -162,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="colors.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="die.h" />
     <ClInclude Include="engine.h" />
     <ClInclude Include="FileBrowser.h" />

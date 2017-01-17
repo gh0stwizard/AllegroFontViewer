@@ -213,7 +213,10 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 	retval = false;
 
 	if (!al_fs_entry_exists(entry)) {
-		fprintf(stderr, "not exists: %s\n", path);
+		//fprintf(stderr, "not exists: %s\n", path);
+		//char buf[1024];
+		//strerror_s(buf, 1023, al_get_errno());
+		//fprintf(stderr, "%s", buf);
 		goto done;
 	}
 

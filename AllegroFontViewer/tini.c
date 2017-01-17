@@ -1,4 +1,5 @@
 #include "main.h"
+#include "config.h"
 
 void
 tini(void)
@@ -26,4 +27,6 @@ tini(void)
 
 	if (display != NULL)
 		al_destroy_display(display);
+
+	config_cleanup();
 }
