@@ -1,4 +1,5 @@
 * read/write settings from/to the ini-file
+	* start directory support
 * show a size of the font near a text when drawing it
 * an abillity to type any text when displaying the choosed font
 * customization support:
@@ -9,7 +10,7 @@
 	* font & its size for UI (dir. listing, fileinfo)
 V fast navigation via PgUp/PgDown keys
 	* abillity to customize this setting
-* support for favorite fonts
+* add favorite fonts menu
 	* add abillity to create notes/comments for the choosed fonts
 * better error notification support
 V when navigating between dirs remember previous selected directory position

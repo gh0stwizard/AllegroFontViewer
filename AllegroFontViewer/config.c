@@ -63,6 +63,9 @@ config_destroy(CONFIG *c)
 		}
 	}
 
+	if (c->browser.startpath != NULL)
+		free(c->browser.startpath);
+
 	free(c);
 }
 
@@ -151,13 +154,19 @@ parse_config(CONFIG *c)
 	c->window.icon = str;
 
 	/* fonts */
-	config_get_value("font:default", "file", CONFIG_AS_STRING, &str);
-	c->fonts[FONT_DEFAULT].file = str;
+	config_get_value("font:browser", "file", CONFIG_AS_STRING, &str);
+	c->fonts[FONT_BROWSER].file = str;
+	config_get_value("font:browser", "size", CONFIG_AS_INT, &inum);
+	c->fonts[FONT_BROWSER].size = inum;
 
-	config_get_value("font:default", "size", CONFIG_AS_INT, &inum);
-	c->fonts[FONT_DEFAULT].size = inum;
+	config_get_value("font:status", "file", CONFIG_AS_STRING, &str);
+	c->fonts[FONT_STATUS].file = str;
+	config_get_value("font:status", "size", CONFIG_AS_INT, &inum);
+	c->fonts[FONT_STATUS].size = inum;
 
-	c->fonts[FONT_DEFAULT].flags = 0;
+	for (int i = 0; i < FONT_MAX; i++) { /* TODO */
+		c->fonts[i].flags = 0;
+	}
 
 	/* display */
 	config_get_value("display", "width", CONFIG_AS_INT, &inum);
@@ -202,6 +211,14 @@ parse_config(CONFIG *c)
 	c->browser.colors[FILEBROWSER_COLOR_FONT_OTF_BG] = al_color_name(str);
 	config_get_value("colors:browser:otf", "foreground", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_FONT_OTF_FG] = al_color_name(str);
+
+	/* keyboard */
+	config_get_value("keyboard", "repeatrate", CONFIG_AS_INT, &inum);
+	c->keyboard.repeatrate = inum;
+
+	/*browser*/
+	config_get_value("browser", "startpath", CONFIG_AS_STRING, &str);
+	c->browser.startpath = str;
 
 	return true;
 }

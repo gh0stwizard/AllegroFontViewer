@@ -108,6 +108,13 @@ fontviewer_load(FONTVIEWER *fv, const char *file)
 	return success;
 }
 
+bool
+fontviewer_load_path(FONTVIEWER *fv, const ALLEGRO_PATH *p)
+{
+	const char *path = al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP);
+	return fontviewer_load(fv, path);
+}
+
 void
 fontviewer_unload(FONTVIEWER *fv)
 {

@@ -89,7 +89,7 @@ filebrowser_new(int width, int height)
 	fb->prefix.dir = al_ustr_new("/");
 	fb->prefix.file = al_ustr_new(" ");
 
-	fb->drawmode = FILEBROWSER_DRAW_DIRLIST;
+	fb->drawmode = FILEBROWSER_DRAW_DIRS;
 
 	fb->eldrawed = 0;
 
@@ -314,7 +314,7 @@ filebrowser_browse_selected(FILEBROWSER *fb)
 			assert(vector_get(fb->f, selected, &p));
 			const char *path = al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP);
 			if (filebrowser_browse_path(fb, path)) {
-				fb->drawmode = FILEBROWSER_DRAW_FILEINFO;
+				fb->drawmode = FILEBROWSER_DRAW_INFO;
 				return true;
 			}
 		}
@@ -322,7 +322,7 @@ filebrowser_browse_selected(FILEBROWSER *fb)
 	else {
 		assert(vector_get(fb->d, selected, &p));
 		if (filebrowser_change_path(fb, p)) {
-			fb->drawmode = FILEBROWSER_DRAW_DIRLIST;
+			fb->drawmode = FILEBROWSER_DRAW_DIRS;
 			return true;
 		}
 	}
@@ -341,7 +341,7 @@ filebrowser_browse_parent(FILEBROWSER *fb)
 		if (al_get_path_num_components(p)) {
 			al_remove_path_component(p, -1);
 			if (filebrowser_change_path(fb, p)) {
-				fb->drawmode = FILEBROWSER_DRAW_DIRLIST;
+				fb->drawmode = FILEBROWSER_DRAW_DIRS;
 				return true;
 			}
 		}
@@ -487,10 +487,10 @@ filebrowser_draw(FILEBROWSER *fb)
 	assert(fb != NULL);
 	selected = (long)fb->selected;
 	switch (fb->drawmode) {
-	case FILEBROWSER_DRAW_DIRLIST:
+	case FILEBROWSER_DRAW_DIRS:
 		filebrowser_draw_dirlist(fb);
 		break;
-	case FILEBROWSER_DRAW_FILEINFO:
+	case FILEBROWSER_DRAW_INFO:
 		filebrowser_draw_fileinfo(fb);
 		break;
 	}
@@ -703,8 +703,8 @@ filebrowser_draw_mode(FILEBROWSER *fb, uint8_t mode)
 	assert(fb != NULL);
 	old = fb->drawmode;
 	switch (mode) {
-	case FILEBROWSER_DRAW_DIRLIST:
-	case FILEBROWSER_DRAW_FILEINFO:
+	case FILEBROWSER_DRAW_DIRS:
+	case FILEBROWSER_DRAW_INFO:
 		fb->drawmode = mode;
 		break;
 	}
@@ -716,11 +716,11 @@ filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *))
 {
 	assert(fb != NULL);
 	switch (id) {
-	case FILEBROWSER_HOOK_DIRSORT:
+	case FILEBROWSER_HOOK_SORT_DIRS:
 		assert(hook != NULL);
 		fb->hook.sort_dirs = hook;
 		break;
-	case FILEBROWSER_HOOK_FILESORT:
+	case FILEBROWSER_HOOK_SORT_FILE:
 		assert(hook != NULL);
 		fb->hook.sort_file = hook;
 		break;

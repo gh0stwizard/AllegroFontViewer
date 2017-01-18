@@ -29,4 +29,5 @@ tini(void)
 		al_destroy_display(display);
 
 	config_destroy(CFG);
+	statusline_destroy(status);
 }

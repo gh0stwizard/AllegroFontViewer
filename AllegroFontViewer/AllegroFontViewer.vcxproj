@@ -156,6 +156,7 @@
     <ClCompile Include="loop.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="messagebox.c" />
+    <ClCompile Include="statusline.c" />
     <ClCompile Include="tini.c" />
     <ClCompile Include="vector.c" />
   </ItemGroup>
@@ -167,12 +168,14 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="die.h" />
     <ClInclude Include="engine.h" />
+    <ClInclude Include="events.h" />
     <ClInclude Include="FileBrowser.h" />
     <ClInclude Include="FileBrowserSort.h" />
     <ClInclude Include="FontViewer.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="messagebox.h" />
+    <ClInclude Include="statusline.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>

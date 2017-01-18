@@ -4,16 +4,20 @@
 #include "engine.h"
 #include "utils.h"
 #include "config.h"
+#include "events.h"
+#include "statusline.h"
 
 ALLEGRO_TRANSFORM		*camera;
 ALLEGRO_DISPLAY			*display;
 ALLEGRO_EVENT_QUEUE		*event_queue;
 ALLEGRO_MONITOR_INFO	*monitor;
 
-CONFIG *CFG;
+CONFIG		*CFG;
+STATUSLINE	*status;
 
 enum {
 	TIMER_MAIN,
+	TIMER_KEYBOARD,
 	TIMER_MAX
 };
 ALLEGRO_TIMER			*timers[TIMER_MAX];

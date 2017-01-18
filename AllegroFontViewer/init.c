@@ -5,6 +5,8 @@
 #include <stdio.h>
 
 static void set_window_icon(void);
+static void set_timers(void);
+static void load_fonts(void);
 
 void
 init(void)
@@ -25,7 +27,6 @@ init(void)
 	if (!al_install_mouse())
 		die("Failed to install mouse");
 
-
 	/* initialiaze addons */
 
 	if (!al_init_image_addon())
@@ -40,12 +41,10 @@ init(void)
 	if (!al_init_primitives_addon())
 		die("Failed to initialize primitives addon");
 
-
 	/* allocate resources */
 
-	/* timers */
-	if (!(timers[TIMER_MAIN] = al_create_timer(1.0 / CFG->display.rate)))
-		die("Failed to create main timer");
+	set_timers();
+	load_fonts();
 
 	/* initialize events */
 
@@ -76,5 +75,54 @@ set_window_icon(void)
 			die("Failed to load icon bitmap");
 
 		al_set_display_icon(display, bitmaps[BITMAP_ICON]);
+	}
+}
+
+static void
+set_timers(void)
+{
+	float values[TIMER_MAX];
+	values[0] = (1.0 / CFG->display.rate);
+	values[1] = (CFG->keyboard.repeatrate / 1000.0);
+
+	for (int i = 0; i < TIMER_MAX; i++) {
+		timers[i] = al_create_timer(values[i]);
+		assert(i >= 0 && timers[i] != NULL);
+	}
+}
+
+static void
+set_display(void)
+{
+	/*TODO: use the code below :) */
+
+	monitor = calloc(1, sizeof(ALLEGRO_MONITOR_INFO));
+	if (al_get_monitor_info(0, monitor) & 0) {
+		al_set_new_display_flags(ALLEGRO_FULLSCREEN);
+		//al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
+		al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_REQUIRE);
+		display = al_create_display(monitor->x2 - monitor->x1, 
+			monitor->y2 - monitor->y1);
+	}
+	else {
+		al_set_new_display_flags(ALLEGRO_WINDOWED);
+		display = al_create_display(CFG->display.w, CFG->display.h);
+	}
+}
+
+static void
+load_fonts(void)
+{
+	static ALLEGRO_FS_ENTRY *e;
+	static FONT_INFO fi;
+
+	fonts[FONT_DEFAULT] = al_create_builtin_font();
+
+	for (int i = FONT_DEFAULT + 1; i < FONT_MAX; i++) {
+		fi = CFG->fonts[i];
+		e = al_create_fs_entry(fi.file);
+		if (al_fs_entry_exists(e))
+			fonts[i] = al_load_font(fi.file, fi.size, fi.flags);
+		al_destroy_fs_entry(e);
 	}
 }
