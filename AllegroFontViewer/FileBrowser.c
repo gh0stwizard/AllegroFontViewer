@@ -512,7 +512,7 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	static ALLEGRO_USTR *ustr;
 	static size_t ustr_offset;
 	static ALLEGRO_PATH *p;
-	static int maxH; /* max height or bottom */
+	static int w, h, maxH; /* max height or bottom */
 	
 	static int fx, fy; /* font coord. */
 	static int fpx, fpy; /* font padding */
@@ -530,13 +530,16 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	assert(fb != NULL);
 	F = fb->fonts[FILEBROWSER_FONT_DEFAULT].font;
 	V = fb->d;
+	w = fb->w;
+	h = fb->h;
+
 	fpx = fb->fonts[FILEBROWSER_FONT_DEFAULT].px;
 	fpy = fb->fonts[FILEBROWSER_FONT_DEFAULT].py;
 	epx = fb->px;
 	epy = fb->py;
 	fsize = fb->fonts[FILEBROWSER_FONT_DEFAULT].size;
 	eH = fsize + (2 * fpy) + 1;
-	maxH = fb->h - eH;
+	maxH = h - eH;
 
 	bg = fb->colors[FILEBROWSER_COLOR_BACKGROUND];
 	fg = fb->colors[FILEBROWSER_COLOR_FOREGROUND];
@@ -546,8 +549,21 @@ filebrowser_draw_dirlist(FILEBROWSER *fb)
 	al_clear_to_color(bg);
 
 	/* heading */
-	al_draw_text(F, fg, epx, epy, 0, 
-		al_path_cstr(fb->curdir, ALLEGRO_NATIVE_PATH_SEP));
+	{
+		ALLEGRO_COLOR border_color = fb->colors[FILEBROWSER_COLOR_BORDER];
+		float lh = fsize / 2 + epy;
+		int bpx = 2;
+		al_draw_line(bpx, h, w - bpx, h, border_color, 1);
+		al_draw_line(bpx, lh, bpx, h, border_color, 1);
+		al_draw_line(w - bpx, lh, w - bpx, h, border_color, 1);
+		al_draw_line(1, lh, epx - 1, lh, border_color, 1);
+
+		cstr = al_path_cstr(fb->curdir, ALLEGRO_NATIVE_PATH_SEP);
+		int headlen = al_get_text_width(F, cstr) + epx;
+		al_draw_line(headlen, lh, w - bpx, lh, border_color, 1);
+
+		al_draw_text(F, fg, epx, epy, 0, cstr);
+	}
 
 	/* set coords. for first el. */
 	x1 = epx;

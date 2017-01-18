@@ -19,3 +19,4 @@ V create an icon for the app.
 * ask user confirmation when trying to load image files (bmp, png, etc)
 * switch between previous mode and current one by pressing the SPACE key
 * add a magnifier for the view font mode
+* fix bug when browser scroll speed = 0

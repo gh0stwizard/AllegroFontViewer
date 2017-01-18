@@ -3,6 +3,7 @@
 
 #include "engine.h"
 #include "FileBrowser.h"
+#include "statusline.h"
 
 enum {
 	FONT_DEFAULT,
@@ -38,10 +39,14 @@ typedef struct CONFIG {
 		ALLEGRO_COLOR	colors[FILEBROWSER_COLOR_MAX];
 		FONT_INFO		fonts[FILEBROWSER_FONT_MAX];
 		char			*startpath;
+		int				scrollspeed;
 	} browser;
 	struct {
 		int repeatrate;
 	} keyboard;
+	struct {
+		ALLEGRO_COLOR	colors[STATUS_COLOR_MAX];
+	} status;
 
 	FONT_INFO fonts[FONT_MAX];
 } CONFIG;

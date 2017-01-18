@@ -4,6 +4,13 @@
 #include "engine.h"
 #include "events.h"
 
+enum {
+	STATUS_COLOR_BACKGROUND,
+	STATUS_COLOR_FOREGROUND,
+	STATUS_COLOR_BORDER,
+	STATUS_COLOR_MAX
+};
+
 typedef struct _afv_statusline STATUSLINE;
 
 STATUSLINE *

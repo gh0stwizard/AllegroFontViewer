@@ -36,9 +36,8 @@ loop(void)
 {
 	ALLEGRO_KEYBOARD_STATE kbState;
 	ALLEGRO_PATH *alpath;
-	ALLEGRO_USTR *ustr;
 	bool redraw = false, done = false;
-	const int fast_browse_percent = 50;
+	int fast_browse_percent = CFG->browser.scrollspeed;
 	int state = STATE_DIRSLIST;
 
 	int w = CFG->display.w;
@@ -79,12 +78,12 @@ loop(void)
 
 		switch (ev.type) {
 		case EVENT_TYPE_STATUSLINE:
+			redraw = true;
 			switch (ev.user.data1) {
 			case EVENT_SYSTEM_LOG:
 			case EVENT_SYSTEM_LOG_FATAL:
-				ustr = (void *)ev.user.data2;
 				al_ustr_truncate(status_ustr, 0);
-				al_ustr_append(status_ustr, ustr);
+				al_ustr_append(status_ustr, (void *)ev.user.data2);
 				break;
 			}
 			al_unref_user_event(&ev.user);
@@ -106,25 +105,32 @@ loop(void)
 				config_destroy(CFG);
 				CFG = config_new(NULL);
 				filebrowser_set_colors(browser, CFG->browser.colors);
+				fast_browse_percent = CFG->browser.scrollspeed;
 				break;
 			case ALLEGRO_KEY_F:
 				if (fontviewer_is_drawn(viewer))
 					state = STATE_FONTVIEW;
 				break;
-			case ALLEGRO_KEY_L:
-				alpath = filebrowser_get_selected_path(browser);
-				if (alpath != NULL) {
-					if (fontviewer_load_path(viewer, alpath)) {
-						fontviewer_draw(viewer);
-						state = STATE_FONTVIEW;
-					}
-					else {
-						state = STATE_FONTVIEW_ERROR;
-					}
-					al_destroy_path(alpath);
+			case ALLEGRO_KEY_SPACE:
+				/* TODO: add a settings switch to handle such behavior? */
+				if (state == STATE_FONTVIEW) {
+					state = STATE_DIRSLIST;
 				}
-				else
-					state = STATE_BROWSER_ERROR;
+				else {
+					alpath = filebrowser_get_selected_path(browser);
+					if (alpath != NULL) {
+						if (fontviewer_load_path(viewer, alpath)) {
+							fontviewer_draw(viewer);
+							state = STATE_FONTVIEW;
+						}
+						else {
+							state = STATE_FONTVIEW_ERROR;
+						}
+						al_destroy_path(alpath);
+					}
+					else
+						state = STATE_BROWSER_ERROR;
+				}
 				break;
 			case ALLEGRO_KEY_PGUP:
 				if (filebrowser_select_prev_items(browser,
@@ -153,11 +159,12 @@ loop(void)
 					state = STATE_BROWSER_ERROR;
 				break;
 			case ALLEGRO_KEY_ENTER:
-				if (filebrowser_draw_mode(browser, 0) == FILEBROWSER_DRAW_INFO)
-				{
+				switch (state) {
+				case STATE_FONTVIEW:
+				case STATE_FILEINFO:
 					state = STATE_DIRSLIST;
-				}
-				else {
+					break;
+				default:
 					if (filebrowser_browse_selected(browser)) {
 						switch (filebrowser_draw_mode(browser, 0)) {
 						case FILEBROWSER_DRAW_DIRS:
@@ -171,6 +178,7 @@ loop(void)
 					else {
 						state = STATE_BROWSER_ERROR;
 					}
+					break;
 				}
 				break;
 			case ALLEGRO_KEY_BACKSPACE:
@@ -179,9 +187,7 @@ loop(void)
 				else
 					state = STATE_BROWSER_ERROR;
 				break;
-			case ALLEGRO_KEY_SPACE:
-				state = STATE_DIRSLIST;
-				break;
+
 			default:
 				redraw = false;
 				break;
@@ -195,8 +201,8 @@ loop(void)
 				al_get_keyboard_state(&kbState);
 				for (int i = 0; i < ALLEGRO_KEY_MAX; i++) {
 					if (al_key_down(&kbState, i)) {
-						const char *key = al_keycode_to_name(i);
-						statusline_push(status, EVENT_SYSTEM_LOG, key);
+						statusline_push(status, EVENT_SYSTEM_LOG, 
+							al_keycode_to_name(i));
 					}
 				}
 			}
@@ -229,6 +235,26 @@ loop(void)
 #endif
 	filebrowser_destroy(browser);
 	fontviewer_destroy(viewer);
+
+	al_ustr_free(status_ustr);
+}
+
+static void
+draw_status(void)
+{
+	int h = CFG->display.h;
+	int w = CFG->display.w;
+	float top = CFG->display.h - 20;
+	ALLEGRO_COLOR bg = CFG->status.colors[STATUS_COLOR_BACKGROUND];
+	ALLEGRO_COLOR fg = CFG->status.colors[STATUS_COLOR_FOREGROUND];
+	/* TODO: get colors from all states/modes */
+	ALLEGRO_COLOR bc = CFG->browser.colors[FILEBROWSER_COLOR_BORDER]; 
+	ALLEGRO_FONT *font = fonts[FONT_STATUS];
+	int ftop = top + (CFG->fonts[FONT_STATUS].size / 2);
+
+	al_draw_filled_rectangle(0, top, w, h, bg);
+	al_draw_rectangle(2, top, w - 2, h - 1, bc, 1);
+	al_draw_ustr(font, fg, 5, ftop, 0, status_ustr);
 }
 
 static void
@@ -238,7 +264,6 @@ draw(ALLEGRO_BITMAP *bmp)
 	al_set_target_bitmap(backbuffer);
 	al_clear_to_color(COLOR_NORMAL_BLACK);
 	al_draw_bitmap(bmp, 0, 0, 0);
-	al_draw_ustr(fonts[FONT_STATUS], COLOR_BRIGHT_MAGENTA, 
-		5, CFG->display.h - 15, 0, status_ustr);
+	draw_status();
 	al_flip_display();
 }

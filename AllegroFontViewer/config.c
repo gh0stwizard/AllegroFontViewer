@@ -186,6 +186,8 @@ parse_config(CONFIG *c)
 	c->browser.colors[FILEBROWSER_COLOR_BACKGROUND] = al_color_name(str);
 	config_get_value("colors:browser", "foreground", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_FOREGROUND] = al_color_name(str);
+	config_get_value("colors:browser", "border", CONFIG_AS_STRING, &str);
+	c->browser.colors[FILEBROWSER_COLOR_BORDER] = al_color_name(str);
 
 	config_get_value("colors:browser:dirs", "background", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_DIR_BG] = al_color_name(str);
@@ -212,6 +214,13 @@ parse_config(CONFIG *c)
 	config_get_value("colors:browser:otf", "foreground", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_FONT_OTF_FG] = al_color_name(str);
 
+	config_get_value("colors:status", "background", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_BACKGROUND] = al_color_name(str);
+	config_get_value("colors:status", "foreground", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_FOREGROUND] = al_color_name(str);
+	config_get_value("colors:status", "border", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_BORDER] = al_color_name(str);
+
 	/* keyboard */
 	config_get_value("keyboard", "repeatrate", CONFIG_AS_INT, &inum);
 	c->keyboard.repeatrate = inum;
@@ -219,6 +228,8 @@ parse_config(CONFIG *c)
 	/*browser*/
 	config_get_value("browser", "startpath", CONFIG_AS_STRING, &str);
 	c->browser.startpath = str;
+	config_get_value("browser", "scrollspeed", CONFIG_AS_INT, &inum);
+	c->browser.scrollspeed = inum;
 
 	return true;
 }
