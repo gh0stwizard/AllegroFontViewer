@@ -233,7 +233,7 @@ loop(void)
 			case ALLEGRO_KEY_BACKSPACE:
 				switch (state) {
 				case STATE_DIRSLIST:
-					redraw = filebrowser_browse_parent(browser);
+					filebrowser_browse_parent(browser);
 					break;
 				}
 				break;

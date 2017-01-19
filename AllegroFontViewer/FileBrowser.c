@@ -200,6 +200,7 @@ bool
 filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 {
 	static ALLEGRO_FS_ENTRY *entry;
+	static const char *ename;
 	static uint32_t emode;
 	static bool retval;
 	extern int fs_entry_cb(ALLEGRO_FS_ENTRY *, void *);
@@ -213,10 +214,10 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 		goto done;
 
 	if (al_get_fs_entry_mode(entry) & ALLEGRO_FILEMODE_ISDIR) {
-		if (fb->changedir) {
-			if (!(al_change_directory(path)))
-				goto done;
-		}
+		ename = al_get_fs_entry_name(entry);
+
+		if (fb->changedir && !al_change_directory(ename))
+			goto done;
 
 		/* Compare the old directory with current one and
 		 * if we were here before then restore the position.
@@ -246,7 +247,7 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 		fb->startpos = startpos;
 		fb->eldrawed = 0;
 		/* remember current directory path */
-		fb->curdir = al_create_path_for_directory(path);
+		fb->curdir = al_create_path_for_directory(ename);
 
 		/* reset counters */
 		fb->counter.directories = 0;
@@ -301,11 +302,17 @@ filebrowser_browse_parent(FILEBROWSER *fb)
 	static ALLEGRO_PATH *p;
 
 	assert(fb != NULL);
-	if ((p = fb->curdir) != NULL) {
+	p = fb->curdir;
+
+	if (p != NULL) {
 		if (al_get_path_num_components(p)) {
 			al_remove_path_component(p, -1);
 			return filebrowser_change_path(fb, p);
 		}
+	}
+	else {
+		p = al_create_path_for_directory("..");
+		return filebrowser_change_path(fb, p);
 	}
 
 	return false;
