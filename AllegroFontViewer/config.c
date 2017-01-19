@@ -18,6 +18,7 @@ config_new(const char * const file)
 	assert(cfg != NULL);
 
 	if (file == NULL) {
+		/* FIXME: relative path!!! */
 		defaults = al_load_config_file(DEFAULT_CONFIG_FILE);
 		assert(defaults != NULL);
 		current = al_load_config_file(USER_CONFIG_FILE);
@@ -230,6 +231,13 @@ parse_config(CONFIG *c)
 	c->browser.startpath = str;
 	config_get_value("browser", "scrollspeed", CONFIG_AS_INT, &inum);
 	c->browser.scrollspeed = inum;
+
+	/* viewer */
+	for (int i = 0; i < VIEWER_MAX_PRESETS; i++) {
+		char preset_str[8] = { 'p', 'r', 'e', 's', 'e', 't', i + 48, '\0' };
+		config_get_value("viewer", preset_str, CONFIG_AS_STRING, &str);
+		c->viewer.presets[i] = al_ustr_new((str == NULL) ? ("") : (str));
+	}
 
 	return true;
 }

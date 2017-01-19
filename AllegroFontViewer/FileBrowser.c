@@ -7,15 +7,14 @@
 
 #include <stdio.h> /* debug */
 
-typedef struct _afv_filebrowser_font FILEBROWSER_FONT;
-struct _afv_filebrowser_font {
+typedef struct {
 	ALLEGRO_FONT *font;
 	int size;
 	int flags;
 	int px, py; /* TODO: replace to better place */
-};
+} FILEBROWSER_FONT;
 
-struct _afv_filebrowser {
+struct FILEBROWSER {
 	ALLEGRO_BITMAP *b;
 	int w, h;
 	FILEBROWSER_FONT fonts[FILEBROWSER_FONT_MAX];
@@ -29,11 +28,6 @@ struct _afv_filebrowser {
 	ALLEGRO_PATH *curdir;
 	bool changedir;
 	struct { ALLEGRO_USTR *dir, *file; } prefix;
-	uint8_t drawmode;
-	struct {
-		ALLEGRO_USTR *name;
-		off_t size;
-	} fileinfo;
 	struct {
 		void(*sort_dirs)(FILEBROWSER *fb);
 		void(*sort_file)(FILEBROWSER *fb);
@@ -43,6 +37,10 @@ struct _afv_filebrowser {
 		size_t startpos;
 		ALLEGRO_PATH *p;
 	} previous;
+	struct {
+		size_t directories;
+		size_t files;
+	} counter;
 };
 
 FILEBROWSER *
@@ -88,8 +86,6 @@ filebrowser_new(int width, int height)
 
 	fb->prefix.dir = al_ustr_new("/");
 	fb->prefix.file = al_ustr_new(" ");
-
-	fb->drawmode = FILEBROWSER_DRAW_DIRS;
 
 	fb->eldrawed = 0;
 
@@ -196,6 +192,7 @@ fs_entry_cb(ALLEGRO_FS_ENTRY *e, void *extra)
 		p = al_create_path(ename);
 		assert(vector_add(fb->f, p));
 	}
+
 	return ALLEGRO_FOR_EACH_FS_ENTRY_SKIP; /* no recursion */
 }
 
@@ -212,13 +209,8 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 	entry = al_create_fs_entry(path);
 	retval = false;
 
-	if (!al_fs_entry_exists(entry)) {
-		//fprintf(stderr, "not exists: %s\n", path);
-		//char buf[1024];
-		//strerror_s(buf, 1023, al_get_errno());
-		//fprintf(stderr, "%s", buf);
+	if (!al_fs_entry_exists(entry))
 		goto done;
-	}
 
 	if (al_get_fs_entry_mode(entry) & ALLEGRO_FILEMODE_ISDIR) {
 		if (fb->changedir) {
@@ -256,11 +248,16 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 		/* remember current directory path */
 		fb->curdir = al_create_path_for_directory(path);
 
+		/* reset counters */
+		fb->counter.directories = 0;
+		fb->counter.files = 0;
+
 		if (al_open_directory(entry)) {
-			//fprintf(stderr, "dir %s\n", path);
 			switch (al_for_each_fs_entry(entry, fs_entry_cb, fb)) {
 			case ALLEGRO_FOR_EACH_FS_ENTRY_OK:
 				retval = true;
+				fb->counter.directories = vector_count(fb->d);
+				fb->counter.files = vector_count(fb->f);
 				break;
 			case ALLEGRO_FOR_EACH_FS_ENTRY_ERROR: /* with    al_set_errno() */
 			case ALLEGRO_FOR_EACH_FS_ENTRY_STOP:  /* without al_set_errno() */
@@ -275,22 +272,6 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 				fb->hook.sort_file(fb);
 		}
 	}
-	else {
-		/* when the user selects a file we store information about it */
-		ALLEGRO_PATH *p = al_create_path(path);
-		if (fb->fileinfo.name != NULL) {
-			ALLEGRO_USTR *n = fb->fileinfo.name;
-			al_ustr_truncate(n, 0);
-			al_ustr_append_cstr(n, al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP));
-		}
-		else {
-			fb->fileinfo.name =
-				al_ustr_new(al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP));
-		}
-		fb->fileinfo.size = al_get_fs_entry_size(entry);
-		al_destroy_path(p);
-		retval = true;
-	}
 
 done:
 	al_destroy_fs_entry(entry);
@@ -301,33 +282,17 @@ bool
 filebrowser_browse_selected(FILEBROWSER *fb)
 {
 	static ALLEGRO_PATH *p;
-	static size_t selected, count;
+	static size_t selected;
 
 	assert(fb != NULL);
 	selected = fb->selected;
-	count = vector_count(fb->d);
 
-	if (selected >= count) {
-		selected -= count;
-		count = vector_count(fb->f);
-		if ((count > 0) && (selected < count)) {
-			assert(vector_get(fb->f, selected, &p));
-			const char *path = al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP);
-			if (filebrowser_browse_path(fb, path)) {
-				fb->drawmode = FILEBROWSER_DRAW_INFO;
-				return true;
-			}
-		}
-	}
-	else {
+	if (selected < fb->counter.directories) {
 		assert(vector_get(fb->d, selected, &p));
-		if (filebrowser_change_path(fb, p)) {
-			fb->drawmode = FILEBROWSER_DRAW_DIRS;
-			return true;
-		}
+		return filebrowser_change_path(fb, p);
 	}
-
-	return false;
+	else
+		return false;
 }
 
 bool
@@ -336,16 +301,13 @@ filebrowser_browse_parent(FILEBROWSER *fb)
 	static ALLEGRO_PATH *p;
 
 	assert(fb != NULL);
-	p = fb->curdir;
-	if (p != NULL) {
+	if ((p = fb->curdir) != NULL) {
 		if (al_get_path_num_components(p)) {
 			al_remove_path_component(p, -1);
-			if (filebrowser_change_path(fb, p)) {
-				fb->drawmode = FILEBROWSER_DRAW_DIRS;
-				return true;
-			}
+			return filebrowser_change_path(fb, p);
 		}
 	}
+
 	return false;
 }
 
@@ -366,8 +328,6 @@ filebrowser_reset_vector(VECTOR *V)
 bool
 filebrowser_change_path(FILEBROWSER *fb, ALLEGRO_PATH *np)
 {
-	static size_t i, count;
-	static VECTOR *V;
 	static bool retval;
 	static ALLEGRO_USTR *ustr;
 	static const char *cstr;
@@ -381,6 +341,7 @@ filebrowser_change_path(FILEBROWSER *fb, ALLEGRO_PATH *np)
 	retval = false;
 	retval = filebrowser_browse_path(fb, al_cstr(ustr));
 	al_ustr_free(ustr);
+
 	return retval;
 }
 
@@ -478,24 +439,6 @@ filebrowser_select_next_items(FILEBROWSER *fb, int percent)
 	return true;
 }
 
-void
-filebrowser_draw(FILEBROWSER *fb)
-{
-	static ALLEGRO_PATH *p;
-	static long int selected;
-
-	assert(fb != NULL);
-	selected = (long)fb->selected;
-	switch (fb->drawmode) {
-	case FILEBROWSER_DRAW_DIRS:
-		filebrowser_draw_dirlist(fb);
-		break;
-	case FILEBROWSER_DRAW_INFO:
-		filebrowser_draw_fileinfo(fb);
-		break;
-	}
-}
-
 #if defined(ALLEGRO_WINDOWS)
 #define CMP(s1, s2, count) (_strnicmp((s1), (s2), (count)))
 #else
@@ -503,7 +446,7 @@ filebrowser_draw(FILEBROWSER *fb)
 #endif
 
 void
-filebrowser_draw_dirlist(FILEBROWSER *fb)
+filebrowser_draw(FILEBROWSER *fb)
 {
 	static ALLEGRO_FONT *F;
 	static VECTOR *V;
@@ -675,59 +618,6 @@ filebrowser_bitmap(FILEBROWSER *fb)
 }
 
 void
-filebrowser_draw_fileinfo(FILEBROWSER *fb)
-{
-	static ALLEGRO_FONT *F;
-	static ALLEGRO_COLOR bg, fg;
-	static ALLEGRO_USTR *ustr;
-	static off_t esize;
-	static int epx, epy; /* element padding */
-	static int fx, fy; /* font coord. */
-	static int fh;
-
-	assert(fb != NULL);
-	F = fb->fonts[FILEBROWSER_FONT_DEFAULT].font;
-	bg = fb->colors[FILEBROWSER_COLOR_BACKGROUND];
-	fg = fb->colors[FILEBROWSER_COLOR_FOREGROUND];
-	epx = fb->px;
-	epy = fb->py;
-	fx = epx;
-	fy = epy;
-	fh = fb->fonts[FILEBROWSER_FONT_DEFAULT].size;
-
-	/* start drawing */
-	al_set_target_bitmap(fb->b);
-	al_clear_to_color(bg);
-
-	ustr = al_ustr_new("File: ");
-	al_ustr_append(ustr, fb->fileinfo.name);
-	al_draw_ustr(F, fg, fx, fy, 0, ustr);
-
-	al_ustr_truncate(ustr, 0);
-	ustr = al_ustr_newf("Size: %d",fb->fileinfo.size);
-	fy += fh + epy;
-	al_draw_ustr(F, fg, fx, fy, 0, ustr);
-
-	al_ustr_free(ustr);;
-}
-
-uint8_t
-filebrowser_draw_mode(FILEBROWSER *fb, uint8_t mode)
-{
-	static uint8_t old;
-
-	assert(fb != NULL);
-	old = fb->drawmode;
-	switch (mode) {
-	case FILEBROWSER_DRAW_DIRS:
-	case FILEBROWSER_DRAW_INFO:
-		fb->drawmode = mode;
-		break;
-	}
-	return old;
-}
-
-void
 filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *))
 {
 	assert(fb != NULL);
@@ -757,13 +647,14 @@ ALLEGRO_PATH *
 filebrowser_get_selected_path(FILEBROWSER *fb)
 {
 	static ALLEGRO_PATH *p;
-	static size_t count_d, selected;
+	static size_t selected;
 
 	assert(fb != NULL);
 	selected = fb->selected;
-	count_d = vector_count(fb->d);
-	if (selected >= count_d) {
-		assert(vector_get(fb->f, selected - count_d, &p));
+
+	if (selected >= fb->counter.directories) {
+		selected -= fb->counter.directories;
+		assert(vector_get(fb->f, selected, &p));
 		return al_clone_path(p);
 	}
 	else

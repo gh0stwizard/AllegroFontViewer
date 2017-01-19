@@ -158,6 +158,7 @@
     <ClCompile Include="messagebox.c" />
     <ClCompile Include="statusline.c" />
     <ClCompile Include="tini.c" />
+    <ClCompile Include="typer.c" />
     <ClCompile Include="vector.c" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +177,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="messagebox.h" />
     <ClInclude Include="statusline.h" />
+    <ClInclude Include="typer.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>

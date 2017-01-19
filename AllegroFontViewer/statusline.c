@@ -38,7 +38,21 @@ _dtor(ALLEGRO_USER_EVENT *ue)
 }
 
 bool
-statusline_push(STATUSLINE *sl, int subsystem, const char *msg)
+statusline_push(STATUSLINE *sl, int subsystem, const ALLEGRO_USTR *msg)
+{
+	static ALLEGRO_EVENT ev;
+	extern void _dtor(ALLEGRO_USER_EVENT *e);
+
+	assert(sl != NULL);
+	ev.user.type = sl->type;
+	ev.user.data1 = subsystem;
+	ev.user.data2 = (intptr_t)al_ustr_dup(msg);
+
+	return al_emit_user_event((ALLEGRO_EVENT_SOURCE *)sl, &ev, _dtor);
+}
+
+bool
+statusline_push_cstr(STATUSLINE *sl, int subsystem, const char *msg)
 {
 	static ALLEGRO_EVENT ev;
 	extern void _dtor(ALLEGRO_USER_EVENT *e);

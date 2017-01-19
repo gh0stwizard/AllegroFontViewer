@@ -19,11 +19,7 @@ enum {
 	CONFIG_AS_STRING
 };
 
-typedef struct FONT_INFO {
-	char *file;
-	int size;
-	int flags;
-} FONT_INFO;
+#define VIEWER_MAX_PRESETS 10
 
 typedef struct CONFIG {
 	struct {
@@ -47,6 +43,9 @@ typedef struct CONFIG {
 	struct {
 		ALLEGRO_COLOR	colors[STATUS_COLOR_MAX];
 	} status;
+	struct {
+		ALLEGRO_USTR *presets[VIEWER_MAX_PRESETS]; /* FIXME */
+	} viewer;
 
 	FONT_INFO fonts[FONT_MAX];
 } CONFIG;

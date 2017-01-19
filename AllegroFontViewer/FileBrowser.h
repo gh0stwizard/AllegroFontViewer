@@ -3,7 +3,7 @@
 
 #include "engine.h"
 
-typedef struct _afv_filebrowser FILEBROWSER;
+typedef struct FILEBROWSER FILEBROWSER;
 typedef enum _afv_filebrowser_font_id FILEBROWSER_FONT_ID;
 typedef enum _afv_filebrowser_color_id FILEBROWSER_COLOR_ID;
 
@@ -29,11 +29,6 @@ enum _afv_filebrowser_color_id {
 	FILEBROWSER_COLOR_FONT_OTF_FG,
 	FILEBROWSER_COLOR_BORDER,
 	FILEBROWSER_COLOR_MAX
-};
-
-enum {
-	FILEBROWSER_DRAW_DIRS = 0x01,
-	FILEBROWSER_DRAW_INFO = 0x02
 };
 
 enum {
@@ -84,15 +79,6 @@ filebrowser_select_next_items(FILEBROWSER *fb, int percent);
 
 void
 filebrowser_draw(FILEBROWSER *fb);
-
-void
-filebrowser_draw_fileinfo(FILEBROWSER *fb);
-
-void
-filebrowser_draw_dirlist(FILEBROWSER *fb);
-
-uint8_t
-filebrowser_draw_mode(FILEBROWSER *fb, uint8_t mode);
 
 void
 filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *));

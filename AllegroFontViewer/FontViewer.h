@@ -29,5 +29,8 @@ fontviewer_bitmap(FONTVIEWER *fv);
 bool
 fontviewer_is_drawn(FONTVIEWER *fv);
 
+void
+fontviewer_set_text(FONTVIEWER *fv, const ALLEGRO_USTR *str);
+
 
 #endif /* _AFV_FONTVIEWER_H__ */

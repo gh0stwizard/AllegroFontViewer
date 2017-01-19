@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define DEFAULT_TEXT "One today is worth two tomorrows"
 
 struct _afv_fontviewer {
 	ALLEGRO_BITMAP *b;
@@ -18,6 +19,7 @@ struct _afv_fontviewer {
 	struct { int onload; } flag;
 	bool unload_first;
 	bool drawed;
+	ALLEGRO_USTR *text;
 };
 
 FONTVIEWER *
@@ -46,6 +48,9 @@ fontviewer_new(int width, int height)
 	fv->px = 5;
 	fv->py = 5;
 
+	fv->text = al_ustr_new(DEFAULT_TEXT);
+	assert(fv->text != NULL);
+
 	return fv;
 }
 
@@ -70,6 +75,11 @@ fontviewer_destroy(FONTVIEWER *fv)
 		fv->b = NULL;
 	}
 
+	if (fv->text != NULL) {
+		al_ustr_free(fv->text);
+		fv->text = NULL;
+	}
+
 	free(fv);
 }
 
@@ -85,8 +95,6 @@ fontviewer_load(FONTVIEWER *fv, const char *file)
 
 	if (fv->unload_first)
 		fontviewer_unload(fv);
-
-	//fprintf(stderr, "loading %s\n", file);
 
 	V = fv->fonts;
 	flags = fv->flag.onload;
@@ -171,20 +179,9 @@ fontviewer_draw(FONTVIEWER *fv)
 	al_set_target_bitmap(fv->b);
 	al_clear_to_color(bg);
 
-	U = al_ustr_new("");
-#define NOTE "One today is worth two tomorrows"
-	size = (strlen(NOTE) + 1);
-	str = malloc(sizeof(char) * size);
-	assert(str != NULL);
+	U = fv->text;
 	for (i = 0; i < count && z < maxH; i++) {
 		if (vector_get(V, i, &F)) {
-			al_ustr_truncate(U, 0);
-#if defined(_WIN32) || defined (_WIN64)
-			sprintf_s(str, (const size_t)size, NOTE);
-#else
-			sprintf(str, NOTE);
-#endif
-			al_ustr_append_cstr(U, str);
 			al_draw_ustr(F, fg, x, y, 0, U);
 			y += (int)i + minsize + py;
 			z = y + (int)i + minsize + py;
@@ -194,8 +191,6 @@ fontviewer_draw(FONTVIEWER *fv)
 			break;
 		}
 	}
-#undef NOTE
-	al_ustr_free(U);
 	free(str);
 }
 
@@ -211,4 +206,13 @@ fontviewer_is_drawn(FONTVIEWER *fv)
 {
 	assert(fv != NULL);
 	return fv->drawed;
+}
+
+void
+fontviewer_set_text(FONTVIEWER *fv, const ALLEGRO_USTR *str)
+{
+	assert(fv != NULL);
+	assert(str != NULL);
+	al_ustr_truncate(fv->text, 0);
+	al_ustr_append(fv->text, str);
 }

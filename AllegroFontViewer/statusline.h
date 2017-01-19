@@ -26,7 +26,10 @@ const char *
 statusline_cstr(STATUSLINE *sl);
 
 bool
-statusline_push(STATUSLINE *sl, int subsystem, const char *msg);
+statusline_push(STATUSLINE *sl, int subsystem, const ALLEGRO_USTR *msg);
+
+bool
+statusline_push_cstr(STATUSLINE *sl, int subsystem, const char *msg);
 
 
 #endif /* _AFV_STATUSLINE_H__ */

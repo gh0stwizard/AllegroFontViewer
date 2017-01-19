@@ -15,19 +15,8 @@ ALLEGRO_MONITOR_INFO	*monitor;
 CONFIG		*CFG;
 STATUSLINE	*status;
 
-enum {
-	TIMER_MAIN,
-	TIMER_KEYBOARD,
-	TIMER_MAX
-};
 ALLEGRO_TIMER			*timers[TIMER_MAX];
-
-enum {
-	BITMAP_ICON,
-	BITMAP_MAX
-};
 ALLEGRO_BITMAP			*bitmaps[BITMAP_MAX];
-
 ALLEGRO_FONT			*fonts[FONT_MAX];
 
 void init(void);
