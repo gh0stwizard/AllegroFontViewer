@@ -4,11 +4,11 @@ Yet another basic Font Viewer based on Allegro 5.
 
 ## Controls
 
-* `Up`, `Down`: select either a directory or a file.
-* `Enter`: enter into the selected directory or show file information.
+* `Up`, `Down`: navigation in directory listing mode.
+* `Enter`: enter into the selected directory or load the selected font.
 * `Backspace`: open the parent directory.
 * `Esc`: exit from the program.
-* `Space`: try to load selected file as a font and show it.
+* `Space`: switch between directory listing mode & font view one.
 * `PgUp`, `PgDown`: fast navigation in the directory listing mode.
 
 ## Dependecies
