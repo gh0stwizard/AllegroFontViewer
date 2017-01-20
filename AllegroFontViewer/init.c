@@ -11,10 +11,11 @@ static void die(const char *message);
 void
 init(void)
 {
-	CFG = config_new(NULL);
-
 	if (!al_init())
 		die("Failed to initialize Allegro.");
+
+	/* always read configuration files after allegro initialization */
+	CFG = config_new(NULL);
 	
 	if (!(display = al_create_display(CFG->display.w, CFG->display.h)))
 		die("Failed to create display.");

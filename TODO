@@ -24,5 +24,6 @@ V create an icon for the app.
 * ask user confirmation when trying to load image files (bmp, png, etc)
 * add a magnifier for the view font mode
 V fix bug when browser scroll speed = 0
-* fix bug when reload configuration file (get/set absolute path to the files)
+V fix bug when reload configuration file (get/set absolute path to the files)
 * add help menu
+* add abillity to run the program without any configuration files

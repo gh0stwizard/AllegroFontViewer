@@ -14,22 +14,46 @@ static ALLEGRO_CONFIG *defaults, *current;
 CONFIG *
 config_new(const char * const file)
 {
+	static ALLEGRO_PATH *p;
+
 	CONFIG *cfg = calloc(1, sizeof(CONFIG));
 	assert(cfg != NULL);
 
 	if (file == NULL) {
-		/* FIXME: relative path!!! */
+#ifndef _DEBUG
+		p = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+		al_set_path_filename(p, DEFAULT_CONFIG_FILE);
+		defaults = al_load_config_file(al_path_cstr(p, 
+			ALLEGRO_NATIVE_PATH_SEP));
+#else
 		defaults = al_load_config_file(DEFAULT_CONFIG_FILE);
+#endif
 		assert(defaults != NULL);
+
+		/* TODO: replace assert to this...
+		if (defaults == NULL)
+			defaults = al_create_config();
+		*/
+
+#ifndef _DEBUG
+		al_set_path_filename(p, USER_CONFIG_FILE);
+		current = al_load_config_file(al_path_cstr(p, 
+			ALLEGRO_NATIVE_PATH_SEP));
+		al_destroy_path(p);
+#else
 		current = al_load_config_file(USER_CONFIG_FILE);
+#endif
 	}
 	else
 		current = al_load_config_file(file);
+
+	if (current == NULL)
+		current = al_create_config();
+
 	assert(current != NULL);
 
 	parse_config(cfg);
 
-	/* FIXME */
 	al_destroy_config(defaults);
 	al_destroy_config(current);
 	defaults = NULL;

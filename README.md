@@ -5,6 +5,7 @@ Yet another basic Font Viewer based on Allegro 5.
 ## Controls
 
 * `Esc`: exit from the program.
+* `F12`: reload configuration files and apply new settings instantly.
 
 ### Directory listing mode
 

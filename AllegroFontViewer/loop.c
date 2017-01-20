@@ -165,6 +165,7 @@ loop(void)
 				config_destroy(CFG);
 				CFG = config_new(NULL);
 				filebrowser_set_colors(browser, CFG->browser.colors);
+				fontviewer_set_colors(viewer, CFG->viewer.colors);
 				scrlspeed = CFG->browser.scrollspeed;
 				break;
 			case ALLEGRO_KEY_SPACE:
