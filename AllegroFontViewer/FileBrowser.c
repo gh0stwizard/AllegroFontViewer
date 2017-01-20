@@ -382,12 +382,12 @@ filebrowser_select_prev_items(FILEBROWSER *fb, int percent)
 	if (count == 0)
 		return false;
 
-	if ((percent <= 0) || (percent > 100))
-		return false;
+	if (percent > 100)
+		percent = 100;
 
 	op = (fb->eldrawed * percent) / 100;
 
-	if (op == 0)
+	if (op <= 0)
 		op = 1;
 
 	if (selected >= op)
@@ -427,12 +427,12 @@ filebrowser_select_next_items(FILEBROWSER *fb, int percent)
 	if (count == 0)
 		return false;
 
-	if ((percent <= 0) || (percent > 100))
-		return false;
+	if (percent > 100)
+		percent = 100;
 
 	op = (fb->eldrawed * percent) / 100;
 
-	if (op == 0)
+	if (op <= 0)
 		op = 1;
 
 	if ((selected + op) >= count)

@@ -19,6 +19,7 @@ Yet another basic Font Viewer based on Allegro 5.
 * `Insert`: enter to Typing mode (see below).
 * `Enter`: change mode to directory listing.
 * `Space`: change mode to directory listing.
+* Point a mouse to see a font size at bottom of the window.
 
 ### Typing mode
 
