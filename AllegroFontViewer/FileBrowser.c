@@ -9,7 +9,7 @@ typedef struct {
 	ALLEGRO_FONT *font;
 	int size;
 	int flags;
-	int px, py; /* TODO: replace to better place */
+	int px, py;
 } FILEBROWSER_FONT;
 
 struct FILEBROWSER {
@@ -133,23 +133,22 @@ filebrowser_destroy(FILEBROWSER * fb)
 }
 
 bool
-filebrowser_load_font(FILEBROWSER *fb, FILEBROWSER_FONT_ID fontid,
-	char const *file, int size, int flags)
+filebrowser_load_font(FILEBROWSER *fb, FILEBROWSER_FONT_ID id, FONT_INFO fi)
 {
 	static ALLEGRO_FONT *font;
 
 	assert(fb != NULL);
-	assert(fontid < FILEBROWSER_FONT_MAX);
+	assert(id < FILEBROWSER_FONT_MAX);
 
-	font = al_load_font(file, size, flags);
+	font = al_load_font(fi.file, fi.size, fi.flags);
 	assert(font != NULL);
 
 	if (font != NULL) {
-		fb->fonts[fontid].font = font;
-		fb->fonts[fontid].size = size;
-		fb->fonts[fontid].flags = flags;
-		fb->fonts[fontid].px = 5;
-		fb->fonts[fontid].py = 5;
+		fb->fonts[id].font = font;
+		fb->fonts[id].size = fi.size;
+		fb->fonts[id].flags = fi.flags;
+		fb->fonts[id].px = 5;
+		fb->fonts[id].py = 5;
 	}
 
 	return true;

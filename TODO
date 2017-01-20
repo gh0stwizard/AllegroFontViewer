@@ -1,19 +1,19 @@
-				Legend: V is done, * is in queue
+			Legend: V is done, * is in queue, ? is under a question
 
 V read/write settings from/to the ini-file
 	V start directory support
 * show a size of the font near a text when drawing it
 V an abillity to type any text when displaying the choosed font
 * customization support:
-	* colors (directory listing, font drawing)
+	V colors (directory listing, font drawing)
 	* window resize + fullscreen support
 	* keyboard shortcuts
 	* a gamepad support
 	V font & its size for UI (dir. listing, fileinfo)
 V fast navigation via PgUp/PgDown keys
-	* abillity to customize this setting
+	V abillity to customize this setting
 * add favorite fonts menu
-	* add abillity to create notes/comments for the choosed fonts
+	? add abillity to create notes/comments for the choosed fonts
 V better error notification support
 V when navigating between dirs remember previous selected directory position
 V color highlight support for known allegro's font extensions in browsing mode
@@ -21,3 +21,4 @@ V create an icon for the app.
 * ask user confirmation when trying to load image files (bmp, png, etc)
 * add a magnifier for the view font mode
 * fix bug when browser scroll speed = 0
+* fix bug when reload configuration file (get/set absolute path to the files)

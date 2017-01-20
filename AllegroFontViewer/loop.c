@@ -8,15 +8,21 @@
 #include "FileBrowserSort.h"
 #endif
 
-#include <stdio.h>
-
 static FILEBROWSER		*browser;
 static FONTVIEWER		*viewer;
 static ALLEGRO_BITMAP	*backbuffer;
 static TYPER			*typer;
 
+/* XXX */
+static ALLEGRO_USTR		*status_ustr;
+
+#define LOG(msg) (statusline_push_cstr(status, EVENT_SYSTEM_LOG, msg))
+#define SAY(msg) (statusline_push(status, EVENT_SYSTEM_LOG, msg))
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 static void draw(ALLEGRO_BITMAP *bmp);
 static void draw_error_window(const ALLEGRO_USER_EVENT *ue);
+static bool try_load_font(void);
 
 enum {
 	STATE_NONE,
@@ -24,15 +30,6 @@ enum {
 	STATE_FONTVIEW,
 	STATE_TYPING,
 	STATE_ERROR
-};
-
-enum {
-	FONTVIEW_KEY_ENTER = 1 << 0,
-	FONTVIEW_KEY_INSERT = 1 << 1
-};
-
-enum {
-	FILEINFO_KEY_ENTER = 1 << 0
 };
 
 enum {
@@ -44,36 +41,6 @@ enum {
 	BROWSER_KEY_BACKSPACE = 1 << 5,
 	BROWSER_KEY_SPACE = 1 << 6
 };
-
-
-#define LOG(msg) (statusline_push_cstr(status, EVENT_SYSTEM_LOG, msg))
-#define SAY(msg) (statusline_push(status, EVENT_SYSTEM_LOG, msg))
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-
-/* XXX */
-static ALLEGRO_USTR *status_ustr;
-
-
-static bool
-try_load_font(void)
-{
-	static ALLEGRO_PATH *p;
-
-	/* when selected is not a directory ... */
-	if (!(filebrowser_browse_selected(browser))) {
-		p = filebrowser_get_selected_path(browser);
-		if (p != NULL) {
-			if (fontviewer_load_path(viewer, p)) {
-				al_destroy_path(p);
-				return true;
-			}
-			else
-				al_destroy_path(p);
-		}
-	}
-
-	return false;
-}
 
 void
 loop(void)
@@ -122,12 +89,15 @@ loop(void)
 	filebrowser_set_hook(browser, FILEBROWSER_HOOK_SORT_FILE, fbsort_file);
 #endif
 
-	filebrowser_load_font(browser, FILEBROWSER_FONT_DEFAULT,
-		CFG->fonts[FONT_BROWSER].file,
-		CFG->fonts[FONT_BROWSER].size,
-		CFG->fonts[FONT_BROWSER].flags);
+	FONT_INFO fi = {
+		.file = CFG->fonts[FONT_BROWSER].file,
+		.size = CFG->fonts[FONT_BROWSER].size,
+		.flags = CFG->fonts[FONT_BROWSER].flags
+	};
+	filebrowser_load_font(browser, FILEBROWSER_FONT_DEFAULT, fi);
 
 	filebrowser_set_colors(browser, CFG->browser.colors);
+	fontviewer_set_colors(viewer, CFG->viewer.colors);
 
 	/* show current directory listing immediatly */
 	redraw = filebrowser_browse_path(browser, CFG->browser.startpath);
@@ -449,4 +419,25 @@ draw_error_window(const ALLEGRO_USER_EVENT *ue)
 	al_ustr_free(u);
 #endif
 	al_flip_display();
+}
+
+static bool
+try_load_font(void)
+{
+	static ALLEGRO_PATH *p;
+
+	/* when selected is not a directory ... */
+	if (!(filebrowser_browse_selected(browser))) {
+		p = filebrowser_get_selected_path(browser);
+		if (p != NULL) {
+			if (fontviewer_load_path(viewer, p)) {
+				al_destroy_path(p);
+				return true;
+			}
+			else
+				al_destroy_path(p);
+		}
+	}
+
+	return false;
 }

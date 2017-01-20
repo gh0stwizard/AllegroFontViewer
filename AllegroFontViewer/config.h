@@ -3,6 +3,7 @@
 
 #include "engine.h"
 #include "FileBrowser.h"
+#include "FontViewer.h"
 #include "statusline.h"
 
 enum {
@@ -44,7 +45,8 @@ typedef struct CONFIG {
 		ALLEGRO_COLOR	colors[STATUS_COLOR_MAX];
 	} status;
 	struct {
-		ALLEGRO_USTR *presets[VIEWER_MAX_PRESETS]; /* FIXME */
+		ALLEGRO_USTR	*presets[VIEWER_MAX_PRESETS]; /* FIXME */
+		ALLEGRO_COLOR	colors[FONTVIEWER_COLOR_MAX];
 	} viewer;
 
 	FONT_INFO fonts[FONT_MAX];

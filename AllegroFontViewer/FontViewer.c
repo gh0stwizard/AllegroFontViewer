@@ -25,6 +25,7 @@ struct _afv_fontviewer {
 	bool unload_first;
 	bool drawed;
 	ALLEGRO_USTR *text;
+	ALLEGRO_COLOR colors[FONTVIEWER_COLOR_MAX];
 };
 
 FONTVIEWER *
@@ -57,6 +58,9 @@ fontviewer_new(int width, int height)
 	assert(fv->text != NULL);
 
 	al_init_user_event_source(&(fv->event_source));
+
+	fv->colors[FONTVIEWER_COLOR_BACKGROUND] = COLOR_NORMAL_BLACK;
+	fv->colors[FONTVIEWER_COLOR_FOREGROUND] = COLOR_BRIGHT_GREEN;
 
 	return fv;
 }
@@ -162,16 +166,13 @@ fontviewer_draw(FONTVIEWER *fv)
 	static VECTOR *V;
 	static size_t i, count, size;
 	static ALLEGRO_USTR *U;
-	static ALLEGRO_COLOR bg, fg;
+	static ALLEGRO_COLOR fg;
 	static char *str;
 	static int x, y, maxH, minsize, maxsize, px, py, z;
 
 	assert(fv != NULL);
 
 	V = fv->fonts;
-
-	bg = COLOR_BRIGHT_BLACK;
-	fg = COLOR_BRIGHT_YELLOW;
 
 	px = fv->px;
 	py = fv->py;
@@ -193,8 +194,9 @@ fontviewer_draw(FONTVIEWER *fv)
 
 	/* start drawing */
 	al_set_target_bitmap(fv->b);
-	al_clear_to_color(bg);
+	al_clear_to_color(fv->colors[FONTVIEWER_COLOR_BACKGROUND]);
 
+	fg = fv->colors[FONTVIEWER_COLOR_FOREGROUND];
 	U = fv->text;
 	for (i = 0; i < count && z < maxH; i++) {
 		vector_get(V, i, &F);
@@ -259,4 +261,12 @@ throw_error(FONTVIEWER *fv, const char *function, int line, ALLEGRO_USTR *msg)
 	ev.user.data4 = (intptr_t)msg;
 
 	al_emit_user_event((ALLEGRO_EVENT_SOURCE *)fv, &ev, event_dtor);
+}
+
+void
+fontviewer_set_colors(FONTVIEWER *fv, ALLEGRO_COLOR list[])
+{
+	assert(fv != NULL);
+	for (int i = 0; i < FONTVIEWER_COLOR_MAX; i++)
+		fv->colors[i] = list[i];
 }

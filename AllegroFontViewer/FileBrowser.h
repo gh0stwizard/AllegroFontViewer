@@ -46,8 +46,7 @@ ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb);
 
 bool
-filebrowser_load_font(FILEBROWSER *fb, FILEBROWSER_FONT_ID fontid,
-	char const *file, int size, int flags);
+filebrowser_load_font(FILEBROWSER *fb, FILEBROWSER_FONT_ID id, FONT_INFO fi);
 
 bool
 filebrowser_set_font_padding(FILEBROWSER *fb, FILEBROWSER_FONT_ID fontid,

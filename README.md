@@ -9,15 +9,16 @@ Yet another basic Font Viewer based on Allegro 5.
 ### Directory listing mode
 
 * `Up`, `Down`: navigation in directory listing mode.
-* `Enter`: enter into the selected directory or try to load the selected font.
-* `Backspace`: open the parent directory.
-* `Space`: switch between directory listing mode & font view one.
 * `PgUp`, `PgDown`: fast navigation in the directory listing mode.
+* `Backspace`: open the parent directory.
+* `Enter`: enter into the selected directory or try to load the selected font.
+* `Space`: switch between directory listing mode & font view one.
 
 ### Font view mode
 
 * `Insert`: enter to Typing mode (see below).
 * `Enter`: change mode to directory listing.
+* `Space`: change mode to directory listing.
 
 ### Typing mode
 

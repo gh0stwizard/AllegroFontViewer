@@ -5,6 +5,12 @@
 
 typedef struct _afv_fontviewer FONTVIEWER;
 
+enum {
+	FONTVIEWER_COLOR_BACKGROUND,
+	FONTVIEWER_COLOR_FOREGROUND,
+	FONTVIEWER_COLOR_MAX
+};
+
 FONTVIEWER *
 fontviewer_new(int width, int height);
 
@@ -31,6 +37,9 @@ fontviewer_is_drawn(FONTVIEWER *fv);
 
 void
 fontviewer_set_text(FONTVIEWER *fv, const ALLEGRO_USTR *str);
+
+void
+fontviewer_set_colors(FONTVIEWER *fv, ALLEGRO_COLOR list[]);
 
 
 #endif /* _AFV_FONTVIEWER_H__ */

@@ -239,5 +239,10 @@ parse_config(CONFIG *c)
 		c->viewer.presets[i] = al_ustr_new((str == NULL) ? ("") : (str));
 	}
 
+	config_get_value("colors:viewer", "background", CONFIG_AS_STRING, &str);
+	c->viewer.colors[FONTVIEWER_COLOR_BACKGROUND] = al_color_name(str);
+	config_get_value("colors:viewer", "foreground", CONFIG_AS_STRING, &str);
+	c->viewer.colors[FONTVIEWER_COLOR_FOREGROUND] = al_color_name(str);
+
 	return true;
 }
