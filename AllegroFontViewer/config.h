@@ -45,7 +45,8 @@ typedef struct CONFIG {
 		ALLEGRO_COLOR	colors[STATUS_COLOR_MAX];
 	} status;
 	struct {
-		ALLEGRO_USTR	*presets[VIEWER_MAX_PRESETS]; /* FIXME */
+		int minsize, maxsize;
+		ALLEGRO_USTR	*presets[VIEWER_MAX_PRESETS];
 		ALLEGRO_COLOR	colors[FONTVIEWER_COLOR_MAX];
 	} viewer;
 

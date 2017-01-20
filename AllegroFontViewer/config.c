@@ -239,6 +239,11 @@ parse_config(CONFIG *c)
 		c->viewer.presets[i] = al_ustr_new((str == NULL) ? ("") : (str));
 	}
 
+	config_get_value("viewer", "minsize", CONFIG_AS_INT, &inum);
+	c->viewer.minsize = inum;
+	config_get_value("viewer", "maxsize", CONFIG_AS_INT, &inum);
+	c->viewer.maxsize = inum;
+
 	config_get_value("colors:viewer", "background", CONFIG_AS_STRING, &str);
 	c->viewer.colors[FONTVIEWER_COLOR_BACKGROUND] = al_color_name(str);
 	config_get_value("colors:viewer", "foreground", CONFIG_AS_STRING, &str);

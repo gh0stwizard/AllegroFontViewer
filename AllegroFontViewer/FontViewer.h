@@ -41,5 +41,11 @@ fontviewer_set_text(FONTVIEWER *fv, const ALLEGRO_USTR *str);
 void
 fontviewer_set_colors(FONTVIEWER *fv, ALLEGRO_COLOR list[]);
 
+int
+fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y);
+
+void
+fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max);
+
 
 #endif /* _AFV_FONTVIEWER_H__ */

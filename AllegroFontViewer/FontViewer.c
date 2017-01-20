@@ -157,6 +157,7 @@ fontviewer_unload(FONTVIEWER *fv)
 		al_destroy_font(F);
 	}
 	assert(vector_reset(V));
+	fv->drawed = false;
 }
 
 void
@@ -181,7 +182,7 @@ fontviewer_draw(FONTVIEWER *fv)
 	y = py;
 	z = 0;
 
-	maxH = fv->h - fv->py;
+	maxH = fv->h - fv->maxsize - 2 * py;
 	minsize = fv->minsize;
 	maxsize = fv->maxsize;
 
@@ -198,11 +199,10 @@ fontviewer_draw(FONTVIEWER *fv)
 
 	fg = fv->colors[FONTVIEWER_COLOR_FOREGROUND];
 	U = fv->text;
-	for (i = 0; i < count && z < maxH; i++) {
+	for (i = 0; i < count && y < maxH; i++) {
 		vector_get(V, i, &F);
 		al_draw_ustr(F, fg, x, y, 0, U);
 		y += (int)i + minsize + py;
-		z = y + (int)i + minsize + py;
 	}
 
 	free(str);
@@ -269,4 +269,44 @@ fontviewer_set_colors(FONTVIEWER *fv, ALLEGRO_COLOR list[])
 	assert(fv != NULL);
 	for (int i = 0; i < FONTVIEWER_COLOR_MAX; i++)
 		fv->colors[i] = list[i];
+}
+
+int
+fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y)
+{
+	static int i, min, maxH, py, yy;
+	static size_t count;
+
+	assert(fv != NULL);
+
+	if (fv->drawed) {
+		/*
+		 * F(y, maxHeight)		f->py + ((int)i + fv->minsize + fv->py, i>0)
+		 */
+		py = fv->py;
+		yy = py;
+		maxH = fv->h - fv->maxsize - 2 * py;
+		min = fv->minsize;
+		count = vector_count(fv->fonts);
+		for (i = 0; i < count && yy < maxH; i++) {
+			if (y <= py)
+				return min;
+
+			if (y >= yy) {
+				yy += i + min + py;
+				if (y < yy)
+					return i + min;
+			}
+		}
+	}
+
+	return -1;
+}
+
+void
+fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max)
+{
+	assert(fv != NULL);
+	fv->minsize = min;
+	fv->maxsize = max;
 }

@@ -46,6 +46,9 @@ void
 loop(void)
 {
 	ALLEGRO_KEYBOARD_STATE kbState;
+	ALLEGRO_MOUSE_STATE mState;
+	ALLEGRO_USTR *u;
+	int fontsize;
 	bool redraw = false, done = false;
 	int scrlspeed = CFG->browser.scrollspeed;
 	int state = STATE_DIRSLIST;
@@ -97,7 +100,10 @@ loop(void)
 	filebrowser_load_font(browser, FILEBROWSER_FONT_DEFAULT, fi);
 
 	filebrowser_set_colors(browser, CFG->browser.colors);
+
 	fontviewer_set_colors(viewer, CFG->viewer.colors);
+	fontviewer_set_font_size_limits(viewer, 
+		CFG->viewer.minsize, CFG->viewer.maxsize);
 
 	/* show current directory listing immediatly */
 	redraw = filebrowser_browse_path(browser, CFG->browser.startpath);
@@ -135,6 +141,17 @@ loop(void)
 		case ALLEGRO_EVENT_DISPLAY_CLOSE:
 			done = true;
 			redraw = false;
+			break;
+
+		case ALLEGRO_EVENT_MOUSE_AXES:
+			switch (state) {
+			case STATE_FONTVIEW:
+				al_get_mouse_state(&mState);
+				fontsize = fontviewer_get_font_size_mouse(viewer, mState.x, mState.y);
+				u = al_ustr_newf("Font size: %d pixels", fontsize);
+				SAY(u);
+				break;
+			}
 			break;
 
 		case ALLEGRO_EVENT_KEY_UP:

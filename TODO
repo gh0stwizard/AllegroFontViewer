@@ -2,7 +2,7 @@
 
 V read/write settings from/to the ini-file
 	V start directory support
-* show a size of the font near a text when drawing it
+V show a size of the font near a text when drawing it
 V an abillity to type any text when displaying the choosed font
 * customization support:
 	V colors (directory listing, font drawing)
@@ -15,6 +15,7 @@ V fast navigation via PgUp/PgDown keys
 * add favorite fonts menu
 	? add abillity to create notes/comments for the choosed fonts
 V better error notification support
+	* use al_draw_multiline_text()
 V when navigating between dirs remember previous selected directory position
 V color highlight support for known allegro's font extensions in browsing mode
 V create an icon for the app.
