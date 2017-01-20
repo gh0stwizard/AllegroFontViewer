@@ -293,9 +293,9 @@ fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y)
 				return min;
 
 			if (y >= yy) {
-				yy += i + min + py;
+				yy += (int)i + min + py;
 				if (y < yy)
-					return i + min;
+					return ((int)i + min);
 			}
 		}
 	}

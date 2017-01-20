@@ -190,7 +190,6 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="statusline.h" />
     <ClInclude Include="typer.h" />
-    <ClInclude Include="utils.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -9,6 +9,8 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_color.h>
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
 typedef struct FONT_INFO {
 	char *file;
 	int size;

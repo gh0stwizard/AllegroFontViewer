@@ -18,7 +18,6 @@ static ALLEGRO_USTR		*status_ustr;
 
 #define LOG(msg) (statusline_push_cstr(status, EVENT_SYSTEM_LOG, msg))
 #define SAY(msg) (statusline_push(status, EVENT_SYSTEM_LOG, msg))
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 static void draw(ALLEGRO_BITMAP *bmp);
 static void draw_error_window(const ALLEGRO_USER_EVENT *ue);

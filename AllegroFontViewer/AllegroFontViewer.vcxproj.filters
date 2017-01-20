@@ -71,9 +71,6 @@
     <ClInclude Include="main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>

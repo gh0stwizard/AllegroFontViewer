@@ -2,7 +2,6 @@
 #define _AFV_MAIN_H__
 
 #include "engine.h"
-#include "utils.h"
 #include "config.h"
 #include "events.h"
 #include "statusline.h"
