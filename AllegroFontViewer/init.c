@@ -1,5 +1,4 @@
 #include "main.h"
-#include "die.h"
 #include "config.h"
 #include <assert.h>
 #include <stdio.h>
@@ -7,6 +6,7 @@
 static void set_window_icon(void);
 static void set_timers(void);
 static void load_fonts(void);
+static void die(const char *message);
 
 void
 init(void)
@@ -125,4 +125,12 @@ load_fonts(void)
 			fonts[i] = al_load_font(fi.file, fi.size, fi.flags);
 		al_destroy_fs_entry(e);
 	}
+}
+
+static void
+die(const char *message)
+{
+	al_show_native_message_box(NULL, "Fatal error!", "Error", message,
+		NULL, ALLEGRO_MESSAGEBOX_ERROR);
+	exit(EXIT_FAILURE);
 }

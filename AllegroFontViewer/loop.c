@@ -1,7 +1,6 @@
 #include "loop.h"
 #include "main.h"
 #include "colors.h"
-#include "messagebox.h"
 #include "FileBrowser.h"
 #include "FontViewer.h"
 #include "typer.h"
@@ -17,12 +16,14 @@ static ALLEGRO_BITMAP	*backbuffer;
 static TYPER			*typer;
 
 static void draw(ALLEGRO_BITMAP *bmp);
+static void draw_error_window(const ALLEGRO_USER_EVENT *ue);
 
 enum {
 	STATE_NONE,
 	STATE_DIRSLIST,
 	STATE_FONTVIEW,
-	STATE_TYPING
+	STATE_TYPING,
+	STATE_ERROR
 };
 
 enum {
@@ -58,11 +59,11 @@ try_load_font(void)
 {
 	static ALLEGRO_PATH *p;
 
+	/* when selected is not a directory ... */
 	if (!(filebrowser_browse_selected(browser))) {
 		p = filebrowser_get_selected_path(browser);
 		if (p != NULL) {
 			if (fontviewer_load_path(viewer, p)) {
-				fontviewer_draw(viewer);
 				al_destroy_path(p);
 				return true;
 			}
@@ -97,22 +98,6 @@ loop(void)
 		ALLEGRO_KEY_PGDN
 	};
 
-	int fileinfo_buttons[] = {
-		FILEINFO_KEY_ENTER
-	};
-	int fileinfo_keycodes[] = {
-		ALLEGRO_KEY_0
-	};
-
-	int fontview_buttons[] = {
-		//FONTVIEW_KEY_ENTER,
-		FONTVIEW_KEY_INSERT
-	};
-	int fontview_keycodes[] = {
-		//ALLEGRO_KEY_ENTER,
-		ALLEGRO_KEY_INSERT
-	};
-
 	int w = CFG->display.w;
 	int h = CFG->display.h - 20;
 
@@ -128,6 +113,7 @@ loop(void)
 
 	status = statusline_new(EVENT_TYPE_STATUSLINE);
 	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)status);
+	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)viewer);
 	status_ustr = al_ustr_new("");
 
 #ifndef _NO_ICU
@@ -156,6 +142,11 @@ loop(void)
 		al_wait_for_event(event_queue, &ev);
 
 		switch (ev.type) {
+		case EVENT_TYPE_ERROR:
+			draw_error_window(&ev.user);
+			state = STATE_ERROR;
+			break;
+
 		case EVENT_TYPE_STATUSLINE:
 			redraw = true;
 			switch (ev.user.data1) {
@@ -204,18 +195,20 @@ loop(void)
 				switch (state) {
 				case STATE_DIRSLIST:
 					/* when selected is not a directory ... */
-					if (try_load_font()) {
+					if (try_load_font())
 						state = STATE_FONTVIEW;
-					}
 					/* otherwise just draw a new selected directory listing! */
 					break;
+				case STATE_ERROR:
 				case STATE_FONTVIEW:
 					state = STATE_DIRSLIST;
 					break;
 				case STATE_TYPING:
 					state = STATE_FONTVIEW;
 					fontviewer_set_text(viewer, typer_get_text(typer));
-					fontviewer_draw(viewer);
+					LOG("");
+					break;
+				default:
 					break;
 				}
 				break;
@@ -285,70 +278,60 @@ loop(void)
 							case ALLEGRO_KEY_F2:
 								typer_set_text(typer, CFG->viewer.presets[0]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F3:
 								typer_set_text(typer, CFG->viewer.presets[1]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F4:
 								typer_set_text(typer, CFG->viewer.presets[2]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F5:
 								typer_set_text(typer, CFG->viewer.presets[3]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F6:
 								typer_set_text(typer, CFG->viewer.presets[4]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F7:
 								typer_set_text(typer, CFG->viewer.presets[5]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F8:
 								typer_set_text(typer, CFG->viewer.presets[6]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F9:
 								typer_set_text(typer, CFG->viewer.presets[7]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F10:
 								typer_set_text(typer, CFG->viewer.presets[8]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F11:
 								typer_set_text(typer, CFG->viewer.presets[9]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								fontviewer_draw(viewer);
 								LOG("");
 								state = STATE_FONTVIEW;
 								break;
@@ -388,9 +371,11 @@ loop(void)
 			redraw = false;
 			switch (state) {
 			case STATE_DIRSLIST:
+				filebrowser_draw(browser);
 				draw(filebrowser_bitmap(browser));
 				break;
 			case STATE_FONTVIEW:
+				fontviewer_draw(viewer);
 				draw(fontviewer_bitmap(viewer));
 				break;
 			case STATE_TYPING:
@@ -406,7 +391,6 @@ loop(void)
 #endif
 	filebrowser_destroy(browser);
 	fontviewer_destroy(viewer);
-
 	al_ustr_free(status_ustr);
 }
 
@@ -431,11 +415,38 @@ draw_status(void)
 static void
 draw(ALLEGRO_BITMAP *bmp)
 {
-	filebrowser_draw(browser);
 	al_set_target_bitmap(backbuffer);
 	al_clear_to_color(COLOR_NORMAL_BLACK);
 	if (bmp != NULL)
 		al_draw_bitmap(bmp, 0, 0, 0);
 	draw_status();
+	al_flip_display();
+}
+
+static void
+draw_error_window(const ALLEGRO_USER_EVENT *ue)
+{
+	ALLEGRO_FONT *font = fonts[FONT_BROWSER];
+	static ALLEGRO_USTR *msg;
+	const int x = 5;
+	const int y = 20;
+	int center = CFG->display.w / 2 - al_get_text_width(font, "ERROR") / 2;
+	msg = (void *)ue->data4;
+
+	al_set_target_bitmap(backbuffer);
+	al_clear_to_color(COLOR_NORMAL_BLACK);
+	al_draw_text(font, COLOR_BRIGHT_RED, center, y, 0, "ERROR");
+	al_draw_ustr(fonts[FONT_BROWSER], COLOR_BRIGHT_GREEN, x, y + 20, 0, msg);
+#if defined(_DEBUG)
+	ALLEGRO_USTR *u = al_ustr_new("In function ");
+	al_ustr_append(u, (void *)ue->data2);
+	al_ustr_append_cstr(u, " at line ");
+	al_ustr_append(u, (void *)ue->data3);
+	al_ustr_append_cstr(u, ".");
+	al_draw_ustr(fonts[FONT_BROWSER], COLOR_BRIGHT_BLUE, x, y + 40, 0, u);
+	al_draw_ustr(fonts[FONT_BROWSER], COLOR_BRIGHT_WHITE,
+		x, y + 60, 0, (void *)ue->data1);
+	al_ustr_free(u);
+#endif
 	al_flip_display();
 }

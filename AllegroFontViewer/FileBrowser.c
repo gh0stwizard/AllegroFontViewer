@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <stdio.h> /* debug */
-
 typedef struct {
 	ALLEGRO_FONT *font;
 	int size;

@@ -27,6 +27,8 @@ statusline_destroy(STATUSLINE *sl)
 	if (sl == NULL)
 		return;
 
+	al_destroy_user_event_source(&(sl->event_source));
+
 	free(sl);
 }
 

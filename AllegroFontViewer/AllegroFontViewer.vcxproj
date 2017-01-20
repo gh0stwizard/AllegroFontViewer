@@ -148,14 +148,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config.c" />
-    <ClCompile Include="die.c" />
     <ClCompile Include="FileBrowser.c" />
     <ClCompile Include="FileBrowserSort.c" />
     <ClCompile Include="FontViewer.c" />
     <ClCompile Include="init.c" />
     <ClCompile Include="loop.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="messagebox.c" />
     <ClCompile Include="statusline.c" />
     <ClCompile Include="tini.c" />
     <ClCompile Include="typer.c" />
@@ -167,7 +165,6 @@
   <ItemGroup>
     <ClInclude Include="colors.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="die.h" />
     <ClInclude Include="engine.h" />
     <ClInclude Include="events.h" />
     <ClInclude Include="FileBrowser.h" />
@@ -175,7 +172,6 @@
     <ClInclude Include="FontViewer.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="messagebox.h" />
     <ClInclude Include="statusline.h" />
     <ClInclude Include="typer.h" />
     <ClInclude Include="utils.h" />

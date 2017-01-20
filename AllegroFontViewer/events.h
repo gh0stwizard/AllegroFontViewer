@@ -4,7 +4,8 @@
 #include "engine.h"
 
 enum {
-	EVENT_TYPE_STATUSLINE = ALLEGRO_GET_EVENT_TYPE('A', 'F', 'V', '1')
+	EVENT_TYPE_STATUSLINE = ALLEGRO_GET_EVENT_TYPE('A', 'F', 'V', '1'),
+	EVENT_TYPE_ERROR
 };
 
 enum {
