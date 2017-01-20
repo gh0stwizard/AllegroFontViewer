@@ -274,8 +274,8 @@ fontviewer_set_colors(FONTVIEWER *fv, ALLEGRO_COLOR list[])
 int
 fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y)
 {
-	static int i, min, maxH, py, yy;
-	static size_t count;
+	static int min, maxH, py, yy;
+	static size_t i, count;
 
 	assert(fv != NULL);
 

@@ -651,13 +651,17 @@ ALLEGRO_PATH *
 filebrowser_get_selected_path(FILEBROWSER *fb)
 {
 	static ALLEGRO_PATH *p;
-	static size_t selected;
+	static size_t selected, num_dirs;
 
 	assert(fb != NULL);
 	selected = fb->selected;
+	num_dirs = fb->counter.directories;
 
-	if (selected >= fb->counter.directories) {
-		selected -= fb->counter.directories;
+	if ((num_dirs == 0) && (fb->counter.files == 0))
+		return NULL;
+
+	if (selected >= num_dirs) {
+		selected -= num_dirs;
 		assert(vector_get(fb->f, selected, &p));
 		return al_clone_path(p);
 	}

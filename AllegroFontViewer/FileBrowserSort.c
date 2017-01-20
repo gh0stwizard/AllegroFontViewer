@@ -1,3 +1,4 @@
+#ifndef _NO_ICU
 #include "FileBrowserSort.h"
 
 #include <assert.h>
@@ -77,3 +78,4 @@ fbsort_file(FILEBROWSER *fb)
 	assert(fb != NULL);
 	filebrowser_sort(fb, 1, cmp_file);
 }
+#endif /* _NO_ICU */
