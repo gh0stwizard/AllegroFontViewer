@@ -18,7 +18,7 @@ Yet another basic Font Viewer based on Allegro 5.
 vim-like conversion:
 
 * `K` (Up), `J` (Down): navigation in directory listing mode.
-* `LSHIFT` (PgUp) + `K`, `LSHIFT` + `J` (PgDn): fast navigation in the directory listing mode.
+* `LSHIFT` + `K` (PgUp), `LSHIFT` + `J` (PgDn): fast navigation in the directory listing mode.
 * `F` (Enter): enter into the selected directory or try to load the selected font.
 * `D` (Backspace): open the parent directory.
 
