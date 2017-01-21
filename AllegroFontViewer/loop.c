@@ -38,7 +38,11 @@ enum {
 	BROWSER_KEY_PGUP = 1 << 3,
 	BROWSER_KEY_PGDN = 1 << 4,
 	BROWSER_KEY_BACKSPACE = 1 << 5,
-	BROWSER_KEY_SPACE = 1 << 6
+	BROWSER_KEY_SPACE = 1 << 6,
+
+	BROWSER_KEY_LSHIFT = 0xa0,
+	BROWSER_KEY_LSHIFT_K = 0xa2,
+	BROWSER_KEY_LSHIFT_J = 0xa4,
 };
 
 void
@@ -56,15 +60,21 @@ loop(void)
 	int pressed = 0;
 	int dirslist_buttons[] = {
 		BROWSER_KEY_UP,
+		BROWSER_KEY_UP, /*vim-like*/
 		BROWSER_KEY_DOWN,
+		BROWSER_KEY_DOWN, /*vim-like*/
 		BROWSER_KEY_PGUP,
-		BROWSER_KEY_PGDN
+		BROWSER_KEY_PGDN,
+		BROWSER_KEY_LSHIFT
 	};
 	int dirslist_keycodes[] = {
 		ALLEGRO_KEY_UP,
+		ALLEGRO_KEY_K, /*vim-like*/
 		ALLEGRO_KEY_DOWN,
+		ALLEGRO_KEY_J, /*vim-like*/
 		ALLEGRO_KEY_PGUP,
-		ALLEGRO_KEY_PGDN
+		ALLEGRO_KEY_PGDN,
+		ALLEGRO_KEY_LSHIFT
 	};
 
 	int w = CFG->display.w;
@@ -178,6 +188,20 @@ loop(void)
 					break;
 				}
 				break;
+			case ALLEGRO_KEY_F: /* vim-like */
+				switch (state) {
+				case STATE_DIRSLIST:
+					/* when selected is not a directory ... */
+					if (try_load_font())
+						state = STATE_FONTVIEW;
+					/* otherwise just draw a new selected directory listing! */
+					break;
+				case STATE_ERROR:
+				case STATE_FONTVIEW:
+					state = STATE_DIRSLIST;
+					break;
+				}
+				break;
 			case ALLEGRO_KEY_ENTER:
 				switch (state) {
 				case STATE_DIRSLIST:
@@ -199,6 +223,7 @@ loop(void)
 					break;
 				}
 				break;
+			case ALLEGRO_KEY_I:
 			case ALLEGRO_KEY_INSERT:
 				switch (state) {
 				case STATE_FONTVIEW:
@@ -207,6 +232,16 @@ loop(void)
 						LOG("Type a text...");
 					else
 						SAY(typer_get_text(typer));
+					break;
+				}
+				break;
+			case ALLEGRO_KEY_D:
+				switch (state) {
+				case STATE_DIRSLIST:
+					filebrowser_browse_parent(browser);
+					break;
+				case STATE_FONTVIEW:
+					state = STATE_DIRSLIST;
 					break;
 				}
 				break;
@@ -308,10 +343,12 @@ loop(void)
 					case BROWSER_KEY_DOWN:
 						redraw = filebrowser_select_next(browser);
 						break;
+					case BROWSER_KEY_LSHIFT_K:
 					case BROWSER_KEY_PGUP:
 						redraw = filebrowser_select_prev_items(browser,
 							scrlspeed);
 						break;
+					case BROWSER_KEY_LSHIFT_J:
 					case BROWSER_KEY_PGDN:
 						redraw = filebrowser_select_next_items(browser,
 							scrlspeed);
