@@ -5,6 +5,8 @@
 #include "FileBrowser.h"
 #include "FontViewer.h"
 #include "statusline.h"
+#include "helpmenu.h"
+#include "typer.h"
 
 enum {
 	FONT_DEFAULT,
@@ -49,6 +51,13 @@ typedef struct CONFIG {
 		ALLEGRO_USTR	*presets[VIEWER_MAX_PRESETS];
 		ALLEGRO_COLOR	colors[FONTVIEWER_COLOR_MAX];
 	} viewer;
+	struct {
+		FONT_INFO		fonts[TYPER_FONT_MAX];
+	} typer;
+	struct {
+		ALLEGRO_COLOR	colors[HELP_MENU_COLOR_MAX];
+		FONT_INFO		fonts[HELP_MENU_FONT_MAX];
+	} help;
 
 	FONT_INFO fonts[FONT_MAX];
 } CONFIG;

@@ -5,6 +5,12 @@
 
 typedef struct TYPER TYPER;
 
+enum {
+	TYPER_FONT_DEFAULT,
+	TYPER_FONT_MAX
+};
+
+
 TYPER *
 typer_new(int w, int h);
 
@@ -27,7 +33,7 @@ void
 typer_draw(TYPER *t);
 
 bool
-typer_load_font(TYPER *t, const char *file, int size, int flags);
+typer_load_font(TYPER *t, FONT_INFO fi);
 
 const ALLEGRO_USTR *
 typer_get_text(TYPER *t);

@@ -4,14 +4,18 @@
 #include "FileBrowser.h"
 #include "FontViewer.h"
 #include "typer.h"
+#include "helpmenu.h"
 #ifndef _NO_ICU
 #include "FileBrowserSort.h"
 #endif
+
+#include <assert.h>
 
 static FILEBROWSER		*browser;
 static FONTVIEWER		*viewer;
 static ALLEGRO_BITMAP	*backbuffer;
 static TYPER			*typer;
+static HELP_MENU		*help;
 
 /* XXX */
 static ALLEGRO_USTR		*status_ustr;
@@ -28,7 +32,8 @@ enum {
 	STATE_DIRSLIST,
 	STATE_FONTVIEW,
 	STATE_TYPING,
-	STATE_ERROR
+	STATE_ERROR,
+	STATE_HELP
 };
 
 enum {
@@ -84,11 +89,18 @@ loop(void)
 	viewer = fontviewer_new(w, h);
 	backbuffer = al_get_backbuffer(display);
 	typer = typer_new(w, h);
+	help = helpmenu_new(w, h);
 
-	typer_load_font(typer,
-		CFG->fonts[FONT_BROWSER].file,
-		CFG->fonts[FONT_BROWSER].size,
-		CFG->fonts[FONT_BROWSER].flags);
+	/* TODO: remove? 
+	typer_load_font(typer, CFG->typer.fonts[TYPER_FONT_DEFAULT]);
+	*/
+
+	for (int i = 0; i < HELP_MENU_FONT_MAX; i++) {
+		FONT_INFO fi = CFG->help.fonts[i];
+		assert(helpmenu_load_font(help, i, fi));
+	}
+	/* TODO: do draw only once? */
+	helpmenu_draw(help);
 
 	status = statusline_new(EVENT_TYPE_STATUSLINE);
 	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)status);
@@ -169,6 +181,16 @@ loop(void)
 			case ALLEGRO_KEY_ESCAPE:
 				done = true;
 				redraw = false;
+				break;
+			case ALLEGRO_KEY_F1:
+				switch (state) {
+				case STATE_HELP:
+					state = STATE_DIRSLIST; /* FIXME */
+					break;
+				default:
+					state = STATE_HELP;
+					break;
+				}
 				break;
 			case ALLEGRO_KEY_F12:
 				config_destroy(CFG);
@@ -472,6 +494,8 @@ loop(void)
 			case STATE_TYPING:
 				draw(fontviewer_bitmap(viewer));
 				break;
+			case STATE_HELP:
+				draw(helpmenu_bitmap(help));
 			default:
 				break;
 			}

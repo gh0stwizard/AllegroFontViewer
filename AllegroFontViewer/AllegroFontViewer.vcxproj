@@ -169,6 +169,7 @@
     <ClCompile Include="FileBrowser.c" />
     <ClCompile Include="FileBrowserSort.c" />
     <ClCompile Include="FontViewer.c" />
+    <ClCompile Include="helpmenu.c" />
     <ClCompile Include="init.c" />
     <ClCompile Include="loop.c" />
     <ClCompile Include="main.c" />
@@ -188,6 +189,7 @@
     <ClInclude Include="FileBrowser.h" />
     <ClInclude Include="FileBrowserSort.h" />
     <ClInclude Include="FontViewer.h" />
+    <ClInclude Include="helpmenu.h" />
     <ClInclude Include="loop.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />

@@ -273,5 +273,28 @@ parse_config(CONFIG *c)
 	config_get_value("colors:viewer", "foreground", CONFIG_AS_STRING, &str);
 	c->viewer.colors[FONTVIEWER_COLOR_FOREGROUND] = al_color_name(str);
 
+	/* typer */
+	config_get_value("font:typer", "file", CONFIG_AS_STRING, &str);
+	c->typer.fonts[TYPER_FONT_DEFAULT].file = str;
+	config_get_value("font:typer", "size", CONFIG_AS_INT, &inum);
+	c->typer.fonts[TYPER_FONT_DEFAULT].size = inum;
+
+	for (int i = 0; i < TYPER_FONT_MAX; i++)
+		c->typer.fonts[i].flags = 0;
+
+	/* help */
+	config_get_value("colors:help", "background", CONFIG_AS_STRING, &str);
+	c->help.colors[HELP_MENU_COLOR_BACKGROUND] = al_color_name(str);
+	config_get_value("colors:help", "foreground", CONFIG_AS_STRING, &str);
+	c->help.colors[HELP_MENU_COLOR_FOREGROUND] = al_color_name(str);
+
+	config_get_value("font:help", "file", CONFIG_AS_STRING, &str);
+	c->help.fonts[HELP_MENU_FONT_DEFAULT].file = str;
+	config_get_value("font:help", "size", CONFIG_AS_INT, &inum);
+	c->help.fonts[HELP_MENU_FONT_DEFAULT].size = inum;
+
+	for (int i = 0; i < HELP_MENU_FONT_MAX; i++)
+		c->help.fonts[i].flags = 0;
+
 	return true;
 }

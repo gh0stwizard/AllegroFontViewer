@@ -91,19 +91,24 @@ typer_draw(TYPER *t)
 }
 
 bool
-typer_load_font(TYPER *t, const char *file, int size, int flags)
+typer_load_font(TYPER *t, FONT_INFO fi)
 {
+	static ALLEGRO_FONT *font;
+
 	assert(t != NULL);
-	ALLEGRO_FONT *f = al_load_font(file, size, flags);
-	assert(f != NULL);
-	if (f != NULL) {
-		t->font.ptr = f;
-		t->font.size = size;
-		t->font.flags = flags;
+	//assert(id < TYPER_FONT_MAX);
+
+	font = al_load_font(fi.file, fi.size, fi.flags);
+	assert(font != NULL);
+
+	if (font != NULL) {
+		t->font.ptr = font;
+		t->font.size = fi.size;
+		t->font.flags = fi.flags;
 		return true;
 	}
-	else
-		return false;
+
+	return false;
 }
 
 const ALLEGRO_USTR *

@@ -48,6 +48,9 @@
     <ClCompile Include="typer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="helpmenu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helpmenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
