@@ -101,7 +101,7 @@ loop(void)
 	filebrowser_set_colors(browser, CFG->browser.colors);
 
 	fontviewer_set_colors(viewer, CFG->viewer.colors);
-	fontviewer_set_font_size_limits(viewer, 
+	fontviewer_set_font_size_limits(viewer,
 		CFG->viewer.minsize, CFG->viewer.maxsize);
 
 	/* show current directory listing immediatly */
@@ -215,6 +215,69 @@ loop(void)
 				case STATE_DIRSLIST:
 					filebrowser_browse_parent(browser);
 					break;
+				case STATE_FONTVIEW:
+					state = STATE_DIRSLIST;
+					break;
+				}
+				break;
+			case ALLEGRO_KEY_F2:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[0]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F3:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[1]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F4:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[2]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F5:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[3]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F6:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[4]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F7:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[5]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F8:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[6]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F9:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[7]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F10:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[8]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
+				}
+				break;
+			case ALLEGRO_KEY_F11:
+				if (state == STATE_FONTVIEW) {
+					typer_set_text(typer, CFG->viewer.presets[9]);
+					fontviewer_set_text(viewer, typer_get_text(typer));
 				}
 				break;
 			default:
@@ -326,6 +389,10 @@ loop(void)
 							case ALLEGRO_KEY_INSERT:
 							case ALLEGRO_KEY_ESCAPE:
 							case ALLEGRO_KEY_ENTER:
+							case ALLEGRO_KEY_ALT:
+							case ALLEGRO_KEY_ALTGR:
+							case ALLEGRO_KEY_HOME:
+							case ALLEGRO_KEY_END:
 								break;
 							case ALLEGRO_KEY_DELETE:
 								typer_truncate(typer);
