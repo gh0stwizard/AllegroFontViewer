@@ -29,3 +29,4 @@ V add help menu
 	* improve help menu (show vim keys, list all keys per one action, etc)
 * add abillity to run the program without any configuration files
 * fix font's drawing using a line height of a font (see dafont/phatone)
+* print out more information about a font in the status line

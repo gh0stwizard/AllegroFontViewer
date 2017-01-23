@@ -169,7 +169,7 @@ fontviewer_draw(FONTVIEWER *fv)
 	static ALLEGRO_USTR *U;
 	static ALLEGRO_COLOR fg;
 	static char *str;
-	static int x, y, maxH, minsize, maxsize, px, py, z;
+	static int x, y, h, minsize, maxsize, px, py;
 
 	assert(fv != NULL);
 
@@ -180,10 +180,9 @@ fontviewer_draw(FONTVIEWER *fv)
 
 	x = px;
 	y = py;
-	z = 0;
 
 	/* FIXME: use line height of the font instead of maxsize? */
-	maxH = fv->h - fv->maxsize - 2 * py;
+	h = fv->h;
 	minsize = fv->minsize;
 	maxsize = fv->maxsize;
 
@@ -200,10 +199,12 @@ fontviewer_draw(FONTVIEWER *fv)
 
 	fg = fv->colors[FONTVIEWER_COLOR_FOREGROUND];
 	U = fv->text;
-	for (i = 0; i < count && y < maxH; i++) {
+	for (i = 0; i < count; i++) {
 		vector_get(V, i, &F);
 		al_draw_ustr(F, fg, x, y, 0, U);
 		y += (int)i + minsize + py;
+		if (y + al_get_font_line_height(F) > h)
+			break;
 	}
 
 	free(str);
