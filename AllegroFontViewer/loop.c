@@ -9,6 +9,7 @@
 #include "FileBrowserSort.h"
 #endif
 
+#include <stdlib.h>
 #include <assert.h>
 
 static FILEBROWSER		*browser;
@@ -57,6 +58,7 @@ loop(void)
 	ALLEGRO_MOUSE_STATE mState;
 	ALLEGRO_USTR *u;
 	int fontsize;
+	FONT_ATTR *fontattr;
 	bool redraw = false, done = false;
 	int scrlspeed = CFG->browser.scrollspeed;
 	int state = STATE_DIRSLIST;
@@ -168,8 +170,13 @@ loop(void)
 			switch (state) {
 			case STATE_FONTVIEW:
 				al_get_mouse_state(&mState);
-				fontsize = fontviewer_get_font_size_mouse(viewer, mState.x, mState.y);
-				u = al_ustr_newf("Font size: %d pixels", fontsize);
+				fontsize = fontviewer_get_font_size_mouse(viewer, 
+					mState.x, mState.y);
+				fontattr = fontviewer_get_attr_by_size(viewer, fontsize);
+				u = al_ustr_newf("Size: %d  Height: %d  Ascent: %d  Descent: %d",
+					fontsize, fontattr->height,
+					fontattr->ascent, fontattr->descent);
+				free(fontattr);
 				SAY(u);
 				break;
 			}

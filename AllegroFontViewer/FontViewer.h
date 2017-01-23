@@ -4,6 +4,11 @@
 #include "engine.h"
 
 typedef struct _afv_fontviewer FONTVIEWER;
+typedef struct FONT_ATTR {
+	int height;
+	int ascent;
+	int descent;
+} FONT_ATTR;
 
 enum {
 	FONTVIEWER_COLOR_BACKGROUND,
@@ -47,5 +52,7 @@ fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y);
 void
 fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max);
 
+FONT_ATTR *
+fontviewer_get_attr_by_size(FONTVIEWER *fv, int size);
 
 #endif /* _AFV_FONTVIEWER_H__ */

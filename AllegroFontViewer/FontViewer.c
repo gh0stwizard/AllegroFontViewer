@@ -28,6 +28,7 @@ struct _afv_fontviewer {
 	ALLEGRO_COLOR colors[FONTVIEWER_COLOR_MAX];
 };
 
+
 FONTVIEWER *
 fontviewer_new(int width, int height)
 {
@@ -200,7 +201,7 @@ fontviewer_draw(FONTVIEWER *fv)
 	fg = fv->colors[FONTVIEWER_COLOR_FOREGROUND];
 	U = fv->text;
 	for (i = 0; i < count; i++) {
-		vector_get(V, i, &F);
+		assert(vector_get(V, i, &F));
 		al_draw_ustr(F, fg, x, y, 0, U);
 		y += (int)i + minsize + py;
 		if (y + al_get_font_line_height(F) > h)
@@ -274,32 +275,38 @@ fontviewer_set_colors(FONTVIEWER *fv, ALLEGRO_COLOR list[])
 }
 
 int
-fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y)
+fontviewer_get_font_size_mouse(FONTVIEWER *fv, int mx, int my)
 {
-	static int min, maxH, py, yy;
+	static int min, py, y;
 	static size_t i, count;
+	static VECTOR *V;
+	static ALLEGRO_FONT *F;
 
 	assert(fv != NULL);
 
-	if (fv->drawed) {
-		/*
-		 * F(y, maxHeight)		f->py + ((int)i + fv->minsize + fv->py, i>0)
-		 */
-		py = fv->py;
-		yy = py;
-		maxH = fv->h - fv->maxsize - 2 * py;
-		min = fv->minsize;
-		count = vector_count(fv->fonts);
-		for (i = 0; i < count && yy < maxH; i++) {
-			if (y <= py)
-				return min;
+	if (fv->drawed == false)
+		return -1;
+	/*
+	 * F(y, maxHeight)		f->py + ((int)i + fv->minsize + fv->py, i>0)
+	 */
+	V = fv->fonts;
+	y = py = fv->py;
+	min = fv->minsize;
+	count = vector_count(V);
 
-			if (y >= yy) {
-				yy += (int)i + min + py;
-				if (y < yy)
-					return ((int)i + min);
-			}
+	for (i = 0; i < count; i++) {
+		if (my <= py)
+			return min;
+
+		if (my >= y) {
+			y += (int)i + min + py;
+			if (my < y)
+				return ((int)i + min);
 		}
+
+		assert(vector_get(V, i, &F));
+		if (y + al_get_font_line_height(F) > fv->h)
+			break;
 	}
 
 	return -1;
@@ -311,4 +318,29 @@ fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max)
 	assert(fv != NULL);
 	fv->minsize = min;
 	fv->maxsize = max;
+}
+
+FONT_ATTR *
+fontviewer_get_attr_by_size(FONTVIEWER *fv, int size)
+{
+	static ALLEGRO_FONT *font;
+	static size_t i, count;
+	static FONT_ATTR *attr;
+
+	assert(fv != NULL);
+	count = vector_count(fv->fonts);
+	i = size - fv->minsize;
+
+	if (i >= 0 && i < count) {
+		assert(vector_get(fv->fonts, i, &font));
+		attr = malloc(sizeof(FONT_ATTR));
+		assert(attr != NULL);
+		attr->height = al_get_font_line_height(font);
+		attr->ascent = al_get_font_ascent(font);
+		attr->descent = al_get_font_descent(font);
+		/* TODO: al_get_text_dimensions() ??? */
+		return attr;
+	}
+	else
+		return NULL;
 }
