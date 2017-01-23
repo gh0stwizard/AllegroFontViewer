@@ -182,6 +182,7 @@ fontviewer_draw(FONTVIEWER *fv)
 	y = py;
 	z = 0;
 
+	/* FIXME: use line height of the font instead of maxsize? */
 	maxH = fv->h - fv->maxsize - 2 * py;
 	minsize = fv->minsize;
 	maxsize = fv->maxsize;

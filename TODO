@@ -25,5 +25,7 @@ V create an icon for the app.
 * add a magnifier for the view font mode
 V fix bug when browser scroll speed = 0
 V fix bug when reload configuration file (get/set absolute path to the files)
-* add help menu
+V add help menu
+	* improve help menu (show vim keys, list all keys per one action, etc)
 * add abillity to run the program without any configuration files
+* fix font's drawing using a line height of a font (see dafont/phatone)

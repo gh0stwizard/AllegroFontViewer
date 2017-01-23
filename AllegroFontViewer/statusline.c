@@ -45,6 +45,8 @@ statusline_push(STATUSLINE *sl, int subsystem, const ALLEGRO_USTR *msg)
 	static ALLEGRO_EVENT ev;
 	extern void _dtor(ALLEGRO_USER_EVENT *e);
 
+	/* TODO: use al_ustr_vappendf() */
+
 	assert(sl != NULL);
 	ev.user.type = sl->type;
 	ev.user.data1 = subsystem;
