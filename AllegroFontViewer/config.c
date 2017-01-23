@@ -287,6 +287,8 @@ parse_config(CONFIG *c)
 	c->help.colors[HELP_MENU_COLOR_BACKGROUND] = al_color_name(str);
 	config_get_value("colors:help", "foreground", CONFIG_AS_STRING, &str);
 	c->help.colors[HELP_MENU_COLOR_FOREGROUND] = al_color_name(str);
+	config_get_value("colors:help", "border", CONFIG_AS_STRING, &str);
+	c->help.colors[HELP_MENU_COLOR_BORDER] = al_color_name(str);
 
 	config_get_value("font:help", "file", CONFIG_AS_STRING, &str);
 	c->help.fonts[HELP_MENU_FONT_DEFAULT].file = str;

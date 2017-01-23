@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 typedef struct {
 	ALLEGRO_FONT *font;
@@ -222,12 +223,22 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 		selected = 0;
 		startpos = 0;
 		if (fb->previous.p != NULL) {
-			const char *old = 
-				al_path_cstr(fb->previous.p, ALLEGRO_NATIVE_PATH_SEP);
-			if (memcmp(old, path, strlen(path)) == 0) {
+			/* TODO:
+			 * 1. Use a brand new al_path_ustr()
+			 * 2. Is ICU fits here better than al_ustr_compare?
+			 */
+			ALLEGRO_PATH *p = al_create_path_for_directory(ename);
+			ALLEGRO_USTR *old = al_ustr_new(al_path_cstr(fb->previous.p, 
+				ALLEGRO_NATIVE_PATH_SEP));
+			ALLEGRO_USTR *cur = al_ustr_new(al_path_cstr(p, 
+				ALLEGRO_NATIVE_PATH_SEP));			
+			if (al_ustr_compare(cur, old) == 0) {
 				selected = fb->previous.selected;
 				startpos = fb->previous.startpos;
 			}
+			al_destroy_path(p);
+			al_ustr_free(old);
+			al_ustr_free(cur);
 		}
 
 		/* remember old directory & position */

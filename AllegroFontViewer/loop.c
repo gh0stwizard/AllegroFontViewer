@@ -99,7 +99,7 @@ loop(void)
 		FONT_INFO fi = CFG->help.fonts[i];
 		assert(helpmenu_load_font(help, i, fi));
 	}
-	/* TODO: do draw only once? */
+	helpmenu_set_colors(help, CFG->help.colors);
 	helpmenu_draw(help);
 
 	status = statusline_new(EVENT_TYPE_STATUSLINE);
@@ -197,6 +197,8 @@ loop(void)
 				CFG = config_new(NULL);
 				filebrowser_set_colors(browser, CFG->browser.colors);
 				fontviewer_set_colors(viewer, CFG->viewer.colors);
+				helpmenu_set_colors(help, CFG->help.colors);
+				helpmenu_draw(help);
 				scrlspeed = CFG->browser.scrollspeed;
 				break;
 			case ALLEGRO_KEY_SPACE:
@@ -452,6 +454,9 @@ loop(void)
 							case ALLEGRO_KEY_ALTGR:
 							case ALLEGRO_KEY_HOME:
 							case ALLEGRO_KEY_END:
+							case ALLEGRO_KEY_LCTRL:
+							case ALLEGRO_KEY_LSHIFT:
+							case ALLEGRO_KEY_LWIN:
 								break;
 							case ALLEGRO_KEY_DELETE:
 								typer_truncate(typer);

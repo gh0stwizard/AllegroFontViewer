@@ -8,6 +8,7 @@ typedef struct HELP_MENU HELP_MENU;
 enum {
 	HELP_MENU_COLOR_BACKGROUND,
 	HELP_MENU_COLOR_FOREGROUND,
+	HELP_MENU_COLOR_BORDER,
 	HELP_MENU_COLOR_MAX
 };
 
@@ -27,7 +28,7 @@ ALLEGRO_BITMAP *
 helpmenu_bitmap(HELP_MENU *h);
 
 void
-helpmenu_draw(HELP_MENU *h);
+helpmenu_draw(HELP_MENU *help);
 
 void
 helpmenu_set_colors(HELP_MENU *h, ALLEGRO_COLOR list[]);

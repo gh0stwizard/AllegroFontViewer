@@ -9,11 +9,26 @@ typedef struct HELP_MENU_FONT {
 	int flags;
 } HELP_MENU_FONT;
 
+//typedef struct HELP_MENU_DATA {
+//
+//};
+
+//enum {
+//	HELP_MENU_DATA_DIRSLIST,
+//	HELP_MENU_DATA_FONTVIEW,
+//	HELP_MENU_DATA_TYPING,
+//	HELP_MENU_DATA_MAX
+//};
+
 struct HELP_MENU {
 	ALLEGRO_BITMAP *b;
 	int w, h;
 	ALLEGRO_COLOR colors[HELP_MENU_COLOR_MAX];
 	HELP_MENU_FONT fonts[HELP_MENU_FONT_MAX];
+	/*struct {
+		ALLEGRO_USTR *title;
+		HELP_MENU_DATA data[HELP_MENU_DATA_MAX];
+	} data;*/
 };
 
 
@@ -47,19 +62,38 @@ helpmenu_bitmap(HELP_MENU *h)
 	return h->b;
 }
 
+#define HELP_TITLE "Help"
+
 void
-helpmenu_draw(HELP_MENU *h)
+helpmenu_draw(HELP_MENU *help)
 {
-	ALLEGRO_COLOR bg, fg;
+	static ALLEGRO_COLOR bg, fg, color_border;
+	static HELP_MENU_FONT F;
+	static int w, h;
 
-	assert(h != NULL);
+	assert(help != NULL);
 
-	bg = h->colors[HELP_MENU_COLOR_BACKGROUND];
-	fg = h->colors[HELP_MENU_COLOR_FOREGROUND];
+	bg = help->colors[HELP_MENU_COLOR_BACKGROUND];
+	fg = help->colors[HELP_MENU_COLOR_FOREGROUND];
+	color_border = help->colors[HELP_MENU_COLOR_BORDER];
+	F = help->fonts[HELP_MENU_FONT_DEFAULT];
 
-	al_set_target_bitmap(h->b);
+	w = help->w;
+	h = help->h;
+
+	int p = 2;
+	int lh = F.size / 2 + p;
+
+	al_set_target_bitmap(help->b);
 	al_clear_to_color(bg);
+	al_draw_rectangle(p, lh, w - p, h, color_border, 1);
 
+	int tw = al_get_text_width(F.font, HELP_TITLE);
+	int center = w / 2 - tw / 2;
+	al_draw_filled_rectangle(center - 1, p, (w / 2) + (tw / 2) + 1, lh, bg);
+	al_draw_text(F.font, fg, center, p, 0, HELP_TITLE);
+
+	al_draw_line(w / 2, F.size + 2*p, w / 2, h - p, color_border, 1);
 }
 
 void

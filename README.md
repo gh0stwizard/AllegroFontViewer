@@ -5,42 +5,43 @@ Yet another basic Font Viewer based on Allegro 5.
 ## Controls
 
 * `Esc`: exit from the program.
+* `F1`: show the help.
 * `F12`: reload configuration files and apply new settings instantly.
 
 ### Directory listing mode
 
 * `Up`, `Down`: navigation in directory listing mode.
 * `PgUp`, `PgDn`: fast navigation in the directory listing mode.
-* `Backspace`: open the parent directory.
+* `Backspace`: open a parent directory.
 * `Enter`: enter into the selected directory or try to load the selected font.
 * `Space`: switch between directory listing mode & font view one.
 
-vim-like conversion:
+vim-like keys conversion:
 
-* `K` (Up), `J` (Down): navigation in directory listing mode.
+* `K` (Up), `J` (Down): navigation in the directory listing mode.
 * `LSHIFT` + `K` (PgUp), `LSHIFT` + `J` (PgDn): fast navigation in the directory listing mode.
 * `F` (Enter): enter into the selected directory or try to load the selected font.
-* `D` (Backspace): open the parent directory.
+* `D` (Backspace): open a parent directory.
 
 ### Font view mode
 
-* `Insert`: enter to Typing mode (see below).
-* `Enter`, `Backspace`, `Space`: change mode to directory listing.
+* `Insert`: switch to the typing mode, see below.
+* `Enter`, `Backspace`, `Space`: change the mode to the directory listing one.
 * `F2` - `F11`: load a text preset.
 * Point a mouse to see a font size at bottom of the window.
 
-vim-like conversion:
+vim-like keys conversion:
 
-* `I` (Insert): enter to Typing mode (see below).
-* `F` (Enter), `D` (Backspace): change mode to directory listing.
+* `I` (Insert): switch to the typing mode, see below.
+* `F` (Enter), `D` (Backspace): change the mode to the directory listing one.
 
 ### Typing mode
 
 * `F2` - `F11`: load a text preset.
-* `Enter`: apply either a choosed preset or typed by hand text.
-* `Backspace`: remove previous typed character.
-* `Delete`: clear typed text.
-* Anything else (mostly) will be typed as text.
+* `Enter`: apply either a choosed preset or a typed by hand text.
+* `Backspace`: remove a previously typed character.
+* `Delete`: clear whole typed text.
+* Other keys are considered as a characters for the typing text.
 
 
 ## Dependecies
