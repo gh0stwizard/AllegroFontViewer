@@ -33,7 +33,7 @@ void
 typer_draw(TYPER *t);
 
 bool
-typer_load_font(TYPER *t, FONT_INFO fi);
+typer_load_font(TYPER *t, FONT fi);
 
 const ALLEGRO_USTR *
 typer_get_text(TYPER *t);

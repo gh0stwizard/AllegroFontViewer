@@ -7,13 +7,8 @@
 #include "statusline.h"
 #include "helpmenu.h"
 #include "typer.h"
+#include "error.h"
 
-enum {
-	FONT_DEFAULT,
-	FONT_BROWSER,
-	FONT_STATUS,
-	FONT_MAX
-};
 
 enum {
 	CONFIG_AS_IS = 0,
@@ -36,7 +31,7 @@ typedef struct CONFIG {
 	} display;
 	struct {
 		ALLEGRO_COLOR	colors[FILEBROWSER_COLOR_MAX];
-		FONT_INFO		fonts[FILEBROWSER_FONT_MAX];
+		FONT			fonts[FILEBROWSER_FONT_MAX];
 		char			*startpath;
 		int				scrollspeed;
 	} browser;
@@ -45,6 +40,7 @@ typedef struct CONFIG {
 	} keyboard;
 	struct {
 		ALLEGRO_COLOR	colors[STATUS_COLOR_MAX];
+		FONT			fonts[STATUS_FONT_MAX];
 	} status;
 	struct {
 		int minsize, maxsize;
@@ -52,14 +48,18 @@ typedef struct CONFIG {
 		ALLEGRO_COLOR	colors[FONTVIEWER_COLOR_MAX];
 	} viewer;
 	struct {
-		FONT_INFO		fonts[TYPER_FONT_MAX];
+		FONT			fonts[TYPER_FONT_MAX];
+		float			blink_period;
 	} typer;
 	struct {
 		ALLEGRO_COLOR	colors[HELP_MENU_COLOR_MAX];
-		FONT_INFO		fonts[HELP_MENU_FONT_MAX];
+		FONT			fonts[HELP_MENU_FONT_MAX];
 	} help;
+	struct {
+		ALLEGRO_COLOR	colors[ERROR_COLOR_MAX];
+		FONT			fonts[ERROR_FONT_MAX];
+	} error;
 
-	FONT_INFO fonts[FONT_MAX];
 } CONFIG;
 
 CONFIG *

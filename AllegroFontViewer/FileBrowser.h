@@ -3,18 +3,17 @@
 
 #include "engine.h"
 
+
 typedef struct FILEBROWSER FILEBROWSER;
-typedef enum _afv_filebrowser_font_id FILEBROWSER_FONT_ID;
-typedef enum _afv_filebrowser_color_id FILEBROWSER_COLOR_ID;
 
-enum _afv_filebrowser_font_id {
+
+typedef enum FILEBROWSER_FONT_ID {
 	FILEBROWSER_FONT_DEFAULT,
-	FILEBROWSER_FONT_DIR,
-	FILEBROWSER_FONT_FILE,
 	FILEBROWSER_FONT_MAX
-};
+} FILEBROWSER_FONT_ID;
 
-enum _afv_filebrowser_color_id {
+
+typedef enum FILEBROWSER_COLOR_ID {
 	FILEBROWSER_COLOR_BACKGROUND,
 	FILEBROWSER_COLOR_FOREGROUND,
 	FILEBROWSER_COLOR_DIR_BG,
@@ -29,12 +28,14 @@ enum _afv_filebrowser_color_id {
 	FILEBROWSER_COLOR_FONT_OTF_FG,
 	FILEBROWSER_COLOR_BORDER,
 	FILEBROWSER_COLOR_MAX
-};
+} FILEBROWSER_COLOR_ID;
+
 
 enum {
 	FILEBROWSER_HOOK_SORT_DIRS = 0x01,
 	FILEBROWSER_HOOK_SORT_FILE = 0x02
 };
+
 
 FILEBROWSER *
 filebrowser_new(int width, int height);
@@ -46,7 +47,7 @@ ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb);
 
 bool
-filebrowser_load_font(FILEBROWSER *fb, FILEBROWSER_FONT_ID id, FONT_INFO fi);
+filebrowser_load_fonts(FILEBROWSER *fb, FONT fontlist[]);
 
 bool
 filebrowser_set_font_padding(FILEBROWSER *fb, FILEBROWSER_FONT_ID fontid,

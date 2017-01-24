@@ -4,12 +4,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct HELP_MENU_FONT {
-	ALLEGRO_FONT *font;
-	int size;
-	int height;
-	int flags;
-} HELP_MENU_FONT;
 
 //typedef struct HELP_MENU_DATA {
 //
@@ -26,7 +20,7 @@ struct HELP_MENU {
 	ALLEGRO_BITMAP *b;
 	int w, h;
 	ALLEGRO_COLOR colors[HELP_MENU_COLOR_MAX];
-	HELP_MENU_FONT fonts[HELP_MENU_FONT_MAX];
+	FONT fonts[HELP_MENU_FONT_MAX];
 	/*struct {
 		ALLEGRO_USTR *title;
 		HELP_MENU_DATA data[HELP_MENU_DATA_MAX];
@@ -37,15 +31,15 @@ struct HELP_MENU {
 HELP_MENU *
 helpmenu_new(int width, int height)
 {
-	HELP_MENU *h = calloc(1, sizeof(HELP_MENU));
-	assert(h != NULL);
+	HELP_MENU *help = calloc(1, sizeof(HELP_MENU));
+	assert(help != NULL);
 
-	h->w = width;
-	h->h = height;
-	h->b = al_create_bitmap(h->w, h->h);
-	assert(h->b != NULL);
+	help->w = width;
+	help->h = height;
+	help->b = al_create_bitmap(help->w, help->h);
+	assert(help->b != NULL);
 
-	return h;
+	return help;
 }
 
 void
@@ -58,10 +52,10 @@ helpmenu_destroy(HELP_MENU *h)
 }
 
 ALLEGRO_BITMAP *
-helpmenu_bitmap(HELP_MENU *h)
+helpmenu_bitmap(HELP_MENU *help)
 {
-	assert(h != NULL);
-	return h->b;
+	assert(help != NULL);
+	return help->b;
 }
 
 static ALLEGRO_BITMAP *
@@ -114,7 +108,7 @@ void
 helpmenu_draw(HELP_MENU *help)
 {
 	static ALLEGRO_COLOR bg, fg, color_border;
-	static HELP_MENU_FONT F;
+	static ALLEGRO_FONT *font;
 	static int w, h;
 	static ALLEGRO_BITMAP *b;
 
@@ -123,7 +117,7 @@ helpmenu_draw(HELP_MENU *help)
 	bg = help->colors[HELP_MENU_COLOR_BACKGROUND];
 	fg = help->colors[HELP_MENU_COLOR_FOREGROUND];
 	color_border = help->colors[HELP_MENU_COLOR_BORDER];
-	F = help->fonts[HELP_MENU_FONT_DEFAULT];
+	font = help->fonts[HELP_MENU_FONT_DEFAULT].font;
 
 	w = help->w;
 	h = help->h;
@@ -131,7 +125,8 @@ helpmenu_draw(HELP_MENU *help)
 
 	int px = 10;
 	int py = 2;
-	int lh = F.size / 2 + py;
+	int fh = help->fonts[HELP_MENU_FONT_DEFAULT].height;
+	int lh = help->fonts[HELP_MENU_FONT_DEFAULT].size / 2 + py;
 
 	al_set_target_bitmap(b);
 	al_clear_to_color(bg);
@@ -139,10 +134,10 @@ helpmenu_draw(HELP_MENU *help)
 
 #define HELP_TITLE "Help"
 
-	int tw = al_get_text_width(F.font, HELP_TITLE);
+	int tw = al_get_text_width(font, HELP_TITLE);
 	int center = w / 2 - tw / 2;
 	al_draw_filled_rectangle(center - 1, py, (w / 2) + (tw / 2) + 1, lh, bg);
-	al_draw_text(F.font, fg, center, py, 0, HELP_TITLE);
+	al_draw_text(font, fg, center, py, 0, HELP_TITLE);
 
 #undef HELP_TITLE
 
@@ -191,19 +186,19 @@ helpmenu_draw(HELP_MENU *help)
 		ALLEGRO_KEY_F2
 	};
 
-	lh = F.height + 2 * py;
+	lh = fh + 2 * py;
 	ALLEGRO_COLOR color_heading = COLOR_BRIGHT_YELLOW;
 
-	al_draw_text(F.font, color_heading, px, lh, 0, "Controls");
-	lh += F.height + py;
+	al_draw_text(font, color_heading, px, lh, 0, "Controls");
+	lh += fh + py;
 
 	KLDAT dat = {
 		.x1 = px,
 		.y1 = lh,
 		.x2 = 3 * w / 4,
 		.y2 = lh,
-		.xdelta = F.height + py,
-		.font = F.font,
+		.xdelta = fh + py,
+		.font = font,
 		.bb = b,
 		.bg = bg,
 		.fg = fg,
@@ -213,30 +208,30 @@ helpmenu_draw(HELP_MENU *help)
 
 	lh = draw_keylist(0, 3, desc, keys, &dat);
 
-	lh += F.height + py;
-	al_draw_text(F.font, color_heading, px, lh, 0, 
+	lh += fh + py;
+	al_draw_text(font, color_heading, px, lh, 0, 
 		"Controls: Directory Listing Mode");
-	lh += F.height + py;
+	lh += fh + py;
 	dat.y1 = lh;
 	dat.y2 = lh;
 	lh = draw_keylist(3, 10, desc, keys, &dat);
 
-	lh += F.height + py;
-	al_draw_text(F.font, color_heading, px, lh, 0, "Controls: Font View Mode");
-	lh += F.height + py;
+	lh += fh + py;
+	al_draw_text(font, color_heading, px, lh, 0, "Controls: Font View Mode");
+	lh += fh + py;
 	dat.y1 = lh;
 	dat.y2 = lh;
 	lh = draw_keylist(10, 13, desc, keys, &dat);
-	al_draw_text(F.font, fg, px, lh, 0, 
+	al_draw_text(font, fg, px, lh, 0, 
 		"Point a Mouse to see a font information");
 
-	lh += 2 * (F.height + py);
-	al_draw_text(F.font, color_heading, px, lh, 0, "Controls: Typing Mode");
-	lh += F.height + py;
+	lh += 2 * (fh + py);
+	al_draw_text(font, color_heading, px, lh, 0, "Controls: Typing Mode");
+	lh += fh + py;
 	dat.y1 = lh;
 	dat.y2 = lh;
 	lh = draw_keylist(13, 17, desc, keys, &dat);
-//	al_draw_text(F.font, fg, px, lh, 0, "Point a Mouse to a font information");
+//	al_draw_text(font, fg, px, lh, 0, "Point a Mouse to a font information");
 }
 
 void
@@ -249,23 +244,23 @@ helpmenu_set_colors(HELP_MENU *h, ALLEGRO_COLOR list[])
 	}
 }
 
-bool
-helpmenu_load_font(HELP_MENU *h, int id, FONT_INFO fi)
+void
+helpmenu_load_fonts(HELP_MENU *help, FONT fontlist[])
 {
+	static FONT fi;
 	static ALLEGRO_FONT *font;
 
-	assert(h != NULL);
-	assert(id < HELP_MENU_FONT_MAX);
+	assert(help != NULL);
+	for (int i = 0; i < HELP_MENU_FONT_MAX; i++) {
+		fi = fontlist[i];
+		font = al_load_font(fi.file, fi.size, fi.flags);
+		assert(font != NULL);
+		help->fonts[i] = fi;
 
-	font = al_load_font(fi.file, fi.size, fi.flags);
-	assert(font != NULL);
+		if (help->fonts[i].font != NULL)
+			al_destroy_font(help->fonts[i].font);
 
-	if (font != NULL) {
-		h->fonts[id].font = font;
-		h->fonts[id].size = fi.size;
-		h->fonts[id].height = al_get_font_line_height(font);
-		h->fonts[id].flags = fi.flags;
+		help->fonts[i].font = font;
+		help->fonts[i].height = al_get_font_line_height(font);
 	}
-
-	return true;
 }

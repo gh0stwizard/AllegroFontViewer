@@ -3,10 +3,11 @@
 #include <assert.h>
 #include <stdio.h>
 
+
 static void set_window_icon(void);
 static void set_timers(void);
-static void load_fonts(void);
 static void die(const char *message);
+
 
 void
 init(void)
@@ -45,7 +46,6 @@ init(void)
 	/* allocate resources */
 
 	set_timers();
-	load_fonts();
 
 	/* initialize events */
 
@@ -67,6 +67,7 @@ init(void)
 	}
 }
 
+
 static void
 set_window_icon(void)
 {
@@ -80,18 +81,21 @@ set_window_icon(void)
 	}
 }
 
+
 static void
 set_timers(void)
 {
 	float values[TIMER_MAX];
 	values[0] = (1.0 / CFG->display.rate);
 	values[1] = (CFG->keyboard.repeatrate / 1000.0);
+	values[2] = CFG->typer.blink_period;
 
 	for (int i = 0; i < TIMER_MAX; i++) {
 		timers[i] = al_create_timer(values[i]);
 		assert(i >= 0 && timers[i] != NULL);
 	}
 }
+
 
 static void
 set_display(void)
@@ -112,22 +116,6 @@ set_display(void)
 	}
 }
 
-static void
-load_fonts(void)
-{
-	static ALLEGRO_FS_ENTRY *e;
-	static FONT_INFO fi;
-
-	fonts[FONT_DEFAULT] = al_create_builtin_font();
-
-	for (int i = FONT_DEFAULT + 1; i < FONT_MAX; i++) {
-		fi = CFG->fonts[i];
-		e = al_create_fs_entry(fi.file);
-		if (al_fs_entry_exists(e))
-			fonts[i] = al_load_font(fi.file, fi.size, fi.flags);
-		al_destroy_fs_entry(e);
-	}
-}
 
 static void
 die(const char *message)

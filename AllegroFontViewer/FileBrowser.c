@@ -6,17 +6,11 @@
 #include <assert.h>
 #include <stdio.h>
 
-typedef struct {
-	ALLEGRO_FONT *font;
-	int size;
-	int flags;
-	int px, py;
-} FILEBROWSER_FONT;
 
 struct FILEBROWSER {
 	ALLEGRO_BITMAP *b;
 	int w, h;
-	FILEBROWSER_FONT fonts[FILEBROWSER_FONT_MAX];
+	FONT fonts[FILEBROWSER_FONT_MAX];
 	ALLEGRO_COLOR colors[FILEBROWSER_COLOR_MAX];
 	VECTOR *d; /* An array of ALLEGRO_PATH* for directories */
 	VECTOR *f; /* An array of ALLEGRO_PATH* for files */
@@ -134,22 +128,26 @@ filebrowser_destroy(FILEBROWSER * fb)
 }
 
 bool
-filebrowser_load_font(FILEBROWSER *fb, FILEBROWSER_FONT_ID id, FONT_INFO fi)
+filebrowser_load_fonts(FILEBROWSER *fb, FONT fontlist[])
 {
+	static FONT fi;
 	static ALLEGRO_FONT *font;
 
 	assert(fb != NULL);
-	assert(id < FILEBROWSER_FONT_MAX);
+	for (int i = 0; i < FILEBROWSER_FONT_MAX; i++) {
+		fi = fontlist[i];
+		font = al_load_font(fi.file, fi.size, fi.flags);
+		assert(font != NULL);
 
-	font = al_load_font(fi.file, fi.size, fi.flags);
-	assert(font != NULL);
+		fb->fonts[i] = fi;
 
-	if (font != NULL) {
-		fb->fonts[id].font = font;
-		fb->fonts[id].size = fi.size;
-		fb->fonts[id].flags = fi.flags;
-		fb->fonts[id].px = 5;
-		fb->fonts[id].py = 5;
+		if (fb->fonts[i].font != NULL) {
+			al_destroy_font(fb->fonts[i].font);
+			fb->fonts[i].font = NULL;
+		}
+
+		fb->fonts[i].font = font;
+		fb->fonts[i].height = al_get_font_line_height(font);
 	}
 
 	return true;
@@ -511,11 +509,12 @@ filebrowser_draw(FILEBROWSER *fb)
 		ALLEGRO_COLOR border_color = fb->colors[FILEBROWSER_COLOR_BORDER];
 		float lh = fsize / 2 + epy;
 		int bpx = 2;
-		al_draw_line(bpx, h, w - bpx, h, border_color, 1);
+		al_draw_line(bpx, h, w - bpx, h, border_color, 1); /* bottom hor. */
 		al_draw_line(bpx, lh, bpx, h, border_color, 1);
 		al_draw_line(w - bpx, lh, w - bpx, h, border_color, 1);
 		al_draw_line(1, lh, epx - 1, lh, border_color, 1);
 
+		assert(fb->curdir != NULL);
 		cstr = al_path_cstr(fb->curdir, ALLEGRO_NATIVE_PATH_SEP);
 		int headlen = al_get_text_width(F, cstr) + epx;
 		al_draw_line(headlen, lh, w - bpx, lh, border_color, 1);

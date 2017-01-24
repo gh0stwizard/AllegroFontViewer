@@ -170,22 +170,21 @@ fontviewer_draw(FONTVIEWER *fv)
 	static ALLEGRO_USTR *U;
 	static ALLEGRO_COLOR fg;
 	static char *str;
-	static int x, y, h, minsize, maxsize, px, py;
+	static int x, y, w, h, minsize, maxsize, px, py;
 
 	assert(fv != NULL);
 
 	V = fv->fonts;
-
 	px = fv->px;
 	py = fv->py;
-
 	x = px;
 	y = py;
-
-	/* FIXME: use line height of the font instead of maxsize? */
+	w = fv->w;
 	h = fv->h;
 	minsize = fv->minsize;
 	maxsize = fv->maxsize;
+	const int border_px = 2;
+	const int border_py = 2;
 
 	count = vector_count(V);
 	if (count == 0) {
@@ -197,9 +196,13 @@ fontviewer_draw(FONTVIEWER *fv)
 	/* start drawing */
 	al_set_target_bitmap(fv->b);
 	al_clear_to_color(fv->colors[FONTVIEWER_COLOR_BACKGROUND]);
+	al_reset_clipping_rectangle();
+	al_draw_rectangle(border_px, border_py, w - border_px, h,
+		fv->colors[FONTVIEWER_COLOR_BORDER], 1);
 
 	fg = fv->colors[FONTVIEWER_COLOR_FOREGROUND];
 	U = fv->text;
+	al_set_clipping_rectangle(border_px, border_py, w - px - border_py, h - py);
 	for (i = 0; i < count; i++) {
 		assert(vector_get(V, i, &F));
 		al_draw_ustr(F, fg, x, y, 0, U);

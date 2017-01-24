@@ -3,20 +3,31 @@
 #include <assert.h>
 #include <stdarg.h>
 
-struct _afv_statusline {
-	ALLEGRO_EVENT_SOURCE event_source;
-	int type;
+
+struct STATUSLINE {
+	ALLEGRO_BITMAP *b;
+	int w, h;
+	int px, py;
+	ALLEGRO_COLOR colors[STATUS_COLOR_MAX];
+	FONT fonts[STATUS_FONT_MAX];
+	bool blink;
+	int blink_w;
 };
 
+
 STATUSLINE *
-statusline_new(int evid)
+statusline_new(int w, int h, int px, int py)
 {
 	STATUSLINE *sl = malloc(sizeof(STATUSLINE));
 
 	assert(sl != NULL);
-	al_init_user_event_source(&(sl->event_source));
-	assert(evid > 1024);
-	sl->type = evid;
+	sl->w = w;
+	sl->h = h;
+	sl->px = px;
+	sl->py = py;
+	sl->b = al_create_bitmap(sl->w, sl->h);
+	sl->blink_w = 10;
+	assert(sl->b != NULL);
 
 	return sl;
 }
@@ -27,44 +38,99 @@ statusline_destroy(STATUSLINE *sl)
 	if (sl == NULL)
 		return;
 
-	al_destroy_user_event_source(&(sl->event_source));
+	if (sl->b)
+		al_destroy_bitmap(sl->b);
+
+	for (int i = 0; i < STATUS_FONT_MAX; i++) {
+		if (sl->fonts[i].font != NULL) {
+			al_destroy_font(sl->fonts[i].font);
+			sl->fonts[i].font = NULL;
+		}
+	}
 
 	free(sl);
 }
 
-static void
-_dtor(ALLEGRO_USER_EVENT *ue)
+
+void
+statusline_set_colors(STATUSLINE *sl, ALLEGRO_COLOR list[])
 {
-	ALLEGRO_EVENT *e = (ALLEGRO_EVENT *)ue;
-	al_ustr_free( (void *)e->user.data2 );
+	assert(sl != NULL);
+	for (int i = 0; i < STATUS_COLOR_MAX; i++)
+		sl->colors[i] = list[i];
 }
 
-bool
-statusline_push(STATUSLINE *sl, int subsystem, const ALLEGRO_USTR *msg)
-{
-	static ALLEGRO_EVENT ev;
-	extern void _dtor(ALLEGRO_USER_EVENT *e);
 
-	/* TODO: use al_ustr_vappendf() */
+void
+statusline_load_fonts(STATUSLINE *sl, FONT fontlist[])
+{
+	static FONT fi;
+	static ALLEGRO_FONT *font;
 
 	assert(sl != NULL);
-	ev.user.type = sl->type;
-	ev.user.data1 = subsystem;
-	ev.user.data2 = (intptr_t)al_ustr_dup(msg);
+	for (int i = 0; i < STATUS_FONT_MAX; i++) {
+		fi = fontlist[i];
+		font = al_load_font(fi.file, fi.size, fi.flags);
+		assert(font != NULL);
+		sl->fonts[i] = fi;
 
-	return al_emit_user_event((ALLEGRO_EVENT_SOURCE *)sl, &ev, _dtor);
+		if (sl->fonts[i].font != NULL) {
+			al_destroy_font(sl->fonts[i].font);
+			sl->fonts[i].font = NULL;
+		}
+
+		sl->fonts[i].font = font;
+		sl->fonts[i].height = al_get_font_line_height(font);
+	}
 }
 
-bool
-statusline_push_cstr(STATUSLINE *sl, int subsystem, const char *msg)
+
+ALLEGRO_BITMAP *
+statusline_bitmap(STATUSLINE *sl)
 {
-	static ALLEGRO_EVENT ev;
-	extern void _dtor(ALLEGRO_USER_EVENT *e);
+	assert(sl != NULL);
+	return sl->b;
+}
+
+
+void
+statusline_draw(STATUSLINE *sl, const ALLEGRO_USTR *us)
+{
+	static int px, py;
+	static FONT *F;
 
 	assert(sl != NULL);
-	ev.user.type = sl->type;
-	ev.user.data1 = subsystem;
-	ev.user.data2 = (intptr_t)al_ustr_new(msg);
+	px = sl->px;
+	py = sl->py;
+	F = &sl->fonts[STATUS_FONT_DEFAULT];
+	al_set_target_bitmap(sl->b);
+	al_clear_to_color(sl->colors[STATUS_COLOR_BACKGROUND]);
+	al_draw_rectangle(px, 0, sl->w - px, sl->h - py,
+		sl->colors[STATUS_COLOR_BORDER], 1);
 
-	return al_emit_user_event((ALLEGRO_EVENT_SOURCE *)sl, &ev, _dtor);
+	if (us != NULL) {
+		al_draw_ustr(F->font,
+			sl->colors[STATUS_COLOR_FOREGROUND], F->px, F->py, 0, us);
+
+		if (sl->blink) {
+			int x = al_get_ustr_width(F->font, us) 
+				+ al_get_glyph_width(F->font, 0x0001);
+			al_draw_filled_rectangle(x, F->py, x + sl->blink_w, F->height,
+				sl->colors[STATUS_COLOR_BLINK]);
+		}
+	}
+}
+
+void
+statusline_blink(STATUSLINE *sl)
+{
+	assert(sl != NULL);
+	sl->blink = !sl->blink;
+}
+
+void
+statusline_noblink(STATUSLINE *sl)
+{
+	assert(sl != NULL);
+	sl->blink = false;
 }

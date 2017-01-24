@@ -91,7 +91,7 @@ typer_draw(TYPER *t)
 }
 
 bool
-typer_load_font(TYPER *t, FONT_INFO fi)
+typer_load_font(TYPER *t, FONT fi)
 {
 	static ALLEGRO_FONT *font;
 

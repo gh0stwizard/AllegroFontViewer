@@ -9,23 +9,19 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_color.h>
 
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-typedef struct FONT_INFO {
+
+typedef struct FONT {
+	ALLEGRO_FONT *font;
 	char *file;
 	int size;
+	int height;
 	int flags;
-} FONT_INFO;
+	int px;
+	int py;
+} FONT;
 
-enum {
-	TIMER_MAIN,
-	TIMER_KEYBOARD,
-	TIMER_MAX
-};
-
-enum {
-	BITMAP_ICON,
-	BITMAP_MAX
-};
 
 #endif /* _AFV_ENGINE_H__ */

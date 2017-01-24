@@ -1,10 +1,11 @@
-#include "loop.h"
 #include "main.h"
 #include "colors.h"
 #include "FileBrowser.h"
 #include "FontViewer.h"
 #include "typer.h"
 #include "helpmenu.h"
+#include "evlog.h"
+#include "error.h"
 #ifndef _NO_ICU
 #include "FileBrowserSort.h"
 #endif
@@ -17,20 +18,21 @@ static FONTVIEWER		*viewer;
 static ALLEGRO_BITMAP	*backbuffer;
 static TYPER			*typer;
 static HELP_MENU		*help;
+static EVLOG			*statuslog;
+static ERROR			*errwin;
+static STATUSLINE		*statusbar;
 
-/* XXX */
-static ALLEGRO_USTR		*status_ustr;
+#define SAYF(fmt, ...) (evlog_pushf(statuslog, EVENT_SYSTEM_STATUS, fmt, __VA_ARGS__))
+#define SAY(us) (evlog_push(statuslog, EVENT_SYSTEM_STATUS, us))
 
-#define LOG(msg) (statusline_push_cstr(status, EVENT_SYSTEM_LOG, msg))
-#define SAY(msg) (statusline_push(status, EVENT_SYSTEM_LOG, msg))
+static void
+draw(ALLEGRO_BITMAP *bmp);
 
-static void draw(ALLEGRO_BITMAP *bmp);
-static void draw_error_window(const ALLEGRO_USER_EVENT *ue);
-static bool try_load_font(void);
+static bool
+try_load_font(void);
 
 enum {
-	STATE_NONE,
-	STATE_DIRSLIST,
+	STATE_DIRSLIST = 1,
 	STATE_FONTVIEW,
 	STATE_TYPING,
 	STATE_ERROR,
@@ -56,7 +58,7 @@ loop(void)
 {
 	ALLEGRO_KEYBOARD_STATE kbState;
 	ALLEGRO_MOUSE_STATE mState;
-	ALLEGRO_USTR *u;
+	ERROR_DATA edata;
 	int fontsize;
 	FONT_ATTR *fontattr;
 	bool redraw = false, done = false;
@@ -84,30 +86,17 @@ loop(void)
 		ALLEGRO_KEY_LSHIFT
 	};
 
+	const int statusbar_h = 20;
+	const int border_px = 2;
+	const int border_py = 2;
 	int w = CFG->display.w;
-	int h = CFG->display.h - 20;
+	int h = CFG->display.h - statusbar_h;
+
+	backbuffer = al_get_backbuffer(display);
 
 	browser = filebrowser_new(w, h);
-	viewer = fontviewer_new(w, h);
-	backbuffer = al_get_backbuffer(display);
-	typer = typer_new(w, h);
-	help = helpmenu_new(w, h);
-
-	/* TODO: remove? 
-	typer_load_font(typer, CFG->typer.fonts[TYPER_FONT_DEFAULT]);
-	*/
-
-	for (int i = 0; i < HELP_MENU_FONT_MAX; i++) {
-		FONT_INFO fi = CFG->help.fonts[i];
-		assert(helpmenu_load_font(help, i, fi));
-	}
-	helpmenu_set_colors(help, CFG->help.colors);
-	helpmenu_draw(help);
-
-	status = statusline_new(EVENT_TYPE_STATUSLINE);
-	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)status);
-	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)viewer);
-	status_ustr = al_ustr_new("");
+	filebrowser_set_colors(browser, CFG->browser.colors);
+	filebrowser_load_fonts(browser, CFG->browser.fonts);
 
 #ifndef _NO_ICU
 	fbsort_init();
@@ -115,18 +104,30 @@ loop(void)
 	filebrowser_set_hook(browser, FILEBROWSER_HOOK_SORT_FILE, fbsort_file);
 #endif
 
-	FONT_INFO fi = {
-		.file = CFG->fonts[FONT_BROWSER].file,
-		.size = CFG->fonts[FONT_BROWSER].size,
-		.flags = CFG->fonts[FONT_BROWSER].flags
-	};
-	filebrowser_load_font(browser, FILEBROWSER_FONT_DEFAULT, fi);
-
-	filebrowser_set_colors(browser, CFG->browser.colors);
-
+	viewer = fontviewer_new(w, h);
 	fontviewer_set_colors(viewer, CFG->viewer.colors);
 	fontviewer_set_font_size_limits(viewer,
 		CFG->viewer.minsize, CFG->viewer.maxsize);
+
+	typer = typer_new(w, h);
+
+	help = helpmenu_new(w, h);
+	helpmenu_load_fonts(help, CFG->help.fonts);
+	helpmenu_set_colors(help, CFG->help.colors);
+	helpmenu_draw(help);
+
+	statuslog = evlog_new(EVENT_TYPE_STATUS);
+	statusbar = statusline_new(w, statusbar_h, border_px, border_py);
+	statusline_load_fonts(statusbar, CFG->status.fonts);
+	statusline_set_colors(statusbar, CFG->status.colors);
+	statusline_draw(statusbar, NULL);
+
+	errwin = error_new(w, h);
+	error_load_fonts(errwin, CFG->error.fonts);
+	error_set_colors(errwin, CFG->error.colors);
+
+	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)statuslog);
+	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)viewer);
 
 	/* show current directory listing immediatly */
 	redraw = filebrowser_browse_path(browser, CFG->browser.startpath);
@@ -142,22 +143,19 @@ loop(void)
 
 		switch (ev.type) {
 		case EVENT_TYPE_ERROR:
-			draw_error_window(&ev.user);
+			redraw = true;
+			edata.file = (void *)ev.user.data1;
+			edata.function = (void *)ev.user.data2;
+			edata.line = (void *)ev.user.data3;
+			edata.message = (void *)ev.user.data4;
+			error_draw(errwin, &edata);
 			state = STATE_ERROR;
+			al_unref_user_event(&ev.user);
 			break;
 
-		case EVENT_TYPE_STATUSLINE:
+		case EVENT_TYPE_STATUS:
 			redraw = true;
-			switch (ev.user.data1) {
-			case EVENT_SYSTEM_LOG:
-			case EVENT_SYSTEM_LOG_FATAL:
-				al_ustr_truncate(status_ustr, 0);
-				al_ustr_append(status_ustr, (void *)ev.user.data2);
-				break;
-			default:
-				redraw = false;
-				break;
-			}
+			statusline_draw(statusbar, (void *)ev.user.data2);
 			al_unref_user_event(&ev.user);
 			break;
 
@@ -173,11 +171,14 @@ loop(void)
 				fontsize = fontviewer_get_font_size_mouse(viewer, 
 					mState.x, mState.y);
 				fontattr = fontviewer_get_attr_by_size(viewer, fontsize);
-				u = al_ustr_newf("Size: %d  Height: %d  Ascent: %d  Descent: %d",
-					fontsize, fontattr->height,
-					fontattr->ascent, fontattr->descent);
-				free(fontattr);
-				SAY(u);
+				if (fontattr != NULL) {
+					SAYF("Size: %d  Height: %d  Ascent: %d  Descent: %d",
+						fontsize, fontattr->height,
+						fontattr->ascent, fontattr->descent);
+					free(fontattr);
+				}
+				break;
+			default:
 				break;
 			}
 			break;
@@ -202,11 +203,14 @@ loop(void)
 			case ALLEGRO_KEY_F12:
 				config_destroy(CFG);
 				CFG = config_new(NULL);
+				scrlspeed = CFG->browser.scrollspeed;
 				filebrowser_set_colors(browser, CFG->browser.colors);
 				fontviewer_set_colors(viewer, CFG->viewer.colors);
+				error_set_colors(errwin, CFG->error.colors);
 				helpmenu_set_colors(help, CFG->help.colors);
+				statusline_set_colors(statusbar, CFG->status.colors);
 				helpmenu_draw(help);
-				scrlspeed = CFG->browser.scrollspeed;
+				statusline_draw(statusbar, NULL);
 				break;
 			case ALLEGRO_KEY_SPACE:
 				switch (state) {
@@ -248,7 +252,6 @@ loop(void)
 				case STATE_TYPING:
 					state = STATE_FONTVIEW;
 					fontviewer_set_text(viewer, typer_get_text(typer));
-					LOG("");
 					break;
 				default:
 					break;
@@ -260,7 +263,7 @@ loop(void)
 				case STATE_FONTVIEW:
 					state = STATE_TYPING;
 					if (al_ustr_size(typer_get_text(typer)) == 0)
-						LOG("Type a text...");
+						SAYF("Type a text...");
 					else
 						SAY(typer_get_text(typer));
 					break;
@@ -290,60 +293,70 @@ loop(void)
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[0]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F3:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[1]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F4:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[2]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F5:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[3]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F6:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[4]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F7:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[5]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F8:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[6]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F9:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[7]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F10:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[8]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			case ALLEGRO_KEY_F11:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[9]);
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					SAY(typer_get_text(typer));
 				}
 				break;
 			default:
@@ -355,6 +368,13 @@ loop(void)
 		case ALLEGRO_EVENT_TIMER:
 			if (ev.timer.source == timers[TIMER_MAIN]) {
 				/* FIXME: is this really need ? */
+			}
+			else if (ev.timer.source == timers[TIMER_BLINK]) {
+				if (state == STATE_TYPING) {
+					redraw = true;
+					statusline_blink(statusbar);
+					statusline_draw(statusbar, typer_get_text(typer));
+				}
 			}
 			else if (ev.timer.source == timers[TIMER_KEYBOARD]) {
 				pressed = 0;
@@ -388,75 +408,64 @@ loop(void)
 					break;
 
 				case STATE_TYPING:
-					redraw = true;
 					for (int i = 0; i < ALLEGRO_KEY_MAX; i++) {
 						keys[i] = al_key_down(&kbState, i);
 						if (keys[i]) {
+							redraw = true;
 							switch (i) {
 							case ALLEGRO_KEY_F2:
 								typer_set_text(typer, CFG->viewer.presets[0]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F3:
 								typer_set_text(typer, CFG->viewer.presets[1]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F4:
 								typer_set_text(typer, CFG->viewer.presets[2]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F5:
 								typer_set_text(typer, CFG->viewer.presets[3]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F6:
 								typer_set_text(typer, CFG->viewer.presets[4]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F7:
 								typer_set_text(typer, CFG->viewer.presets[5]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F8:
 								typer_set_text(typer, CFG->viewer.presets[6]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F9:
 								typer_set_text(typer, CFG->viewer.presets[7]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F10:
 								typer_set_text(typer, CFG->viewer.presets[8]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F11:
 								typer_set_text(typer, CFG->viewer.presets[9]);
 								fontviewer_set_text(viewer, typer_get_text(typer));
-								LOG("");
 								state = STATE_FONTVIEW;
 								break;
 							case ALLEGRO_KEY_F1:
 							case ALLEGRO_KEY_INSERT:
 							case ALLEGRO_KEY_ESCAPE:
-							case ALLEGRO_KEY_ENTER:
 							case ALLEGRO_KEY_ALT:
 							case ALLEGRO_KEY_ALTGR:
 							case ALLEGRO_KEY_HOME:
@@ -464,6 +473,7 @@ loop(void)
 							case ALLEGRO_KEY_LCTRL:
 							case ALLEGRO_KEY_LSHIFT:
 							case ALLEGRO_KEY_LWIN:
+							case ALLEGRO_KEY_ENTER:
 								break;
 							case ALLEGRO_KEY_DELETE:
 								typer_truncate(typer);
@@ -496,10 +506,13 @@ loop(void)
 			redraw = false;
 			switch (state) {
 			case STATE_DIRSLIST:
+				statusline_draw(statusbar, NULL);
 				filebrowser_draw(browser);
 				draw(filebrowser_bitmap(browser));
 				break;
 			case STATE_FONTVIEW:
+				statusline_noblink(statusbar);
+				statusline_draw(statusbar, typer_get_text(typer));
 				fontviewer_draw(viewer);
 				draw(fontviewer_bitmap(viewer));
 				break;
@@ -507,7 +520,13 @@ loop(void)
 				draw(fontviewer_bitmap(viewer));
 				break;
 			case STATE_HELP:
+				statusline_draw(statusbar, NULL);
 				draw(helpmenu_bitmap(help));
+				break;
+			case STATE_ERROR:
+				statusline_draw(statusbar, NULL);
+				draw(error_bitmap(errwin));
+				break;
 			default:
 				break;
 			}
@@ -518,26 +537,13 @@ loop(void)
 #endif
 	filebrowser_destroy(browser);
 	fontviewer_destroy(viewer);
-	al_ustr_free(status_ustr);
+	helpmenu_destroy(help);
+	typer_destroy(typer);
+	error_destroy(errwin);
+	evlog_destroy(statuslog);
+	statusline_destroy(statusbar);
 }
 
-static void
-draw_status(void)
-{
-	int h = CFG->display.h;
-	int w = CFG->display.w;
-	float top = CFG->display.h - 20;
-	ALLEGRO_COLOR bg = CFG->status.colors[STATUS_COLOR_BACKGROUND];
-	ALLEGRO_COLOR fg = CFG->status.colors[STATUS_COLOR_FOREGROUND];
-	/* TODO: get colors from all states/modes */
-	ALLEGRO_COLOR bc = CFG->browser.colors[FILEBROWSER_COLOR_BORDER];
-	ALLEGRO_FONT *font = fonts[FONT_STATUS];
-	int ftop = top + (CFG->fonts[FONT_STATUS].size / 2);
-
-	al_draw_filled_rectangle(0, top, w, h, bg);
-	al_draw_rectangle(2, top, w - 2, h - 1, bc, 1);
-	al_draw_ustr(font, fg, 5, ftop, 0, status_ustr);
-}
 
 static void
 draw(ALLEGRO_BITMAP *bmp)
@@ -546,37 +552,10 @@ draw(ALLEGRO_BITMAP *bmp)
 	al_clear_to_color(COLOR_NORMAL_BLACK);
 	if (bmp != NULL)
 		al_draw_bitmap(bmp, 0, 0, 0);
-	draw_status();
+	al_draw_bitmap(statusline_bitmap(statusbar), 0, CFG->display.h - 20, 0);
 	al_flip_display();
 }
 
-static void
-draw_error_window(const ALLEGRO_USER_EVENT *ue)
-{
-	ALLEGRO_FONT *font = fonts[FONT_BROWSER];
-	static ALLEGRO_USTR *msg;
-	const int x = 5;
-	const int y = 20;
-	int center = CFG->display.w / 2 - al_get_text_width(font, "ERROR") / 2;
-	msg = (void *)ue->data4;
-
-	al_set_target_bitmap(backbuffer);
-	al_clear_to_color(COLOR_NORMAL_BLACK);
-	al_draw_text(font, COLOR_BRIGHT_RED, center, y, 0, "ERROR");
-	al_draw_ustr(fonts[FONT_BROWSER], COLOR_BRIGHT_GREEN, x, y + 20, 0, msg);
-#if defined(_DEBUG)
-	ALLEGRO_USTR *u = al_ustr_new("In function ");
-	al_ustr_append(u, (void *)ue->data2);
-	al_ustr_append_cstr(u, " at line ");
-	al_ustr_append(u, (void *)ue->data3);
-	al_ustr_append_cstr(u, ".");
-	al_draw_ustr(fonts[FONT_BROWSER], COLOR_BRIGHT_BLUE, x, y + 40, 0, u);
-	al_draw_ustr(fonts[FONT_BROWSER], COLOR_BRIGHT_WHITE,
-		x, y + 60, 0, (void *)ue->data1);
-	al_ustr_free(u);
-#endif
-	al_flip_display();
-}
 
 static bool
 try_load_font(void)

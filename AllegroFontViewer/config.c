@@ -74,13 +74,6 @@ config_destroy(CONFIG *c)
 	if (c->window.icon)
 		free(c->window.icon);
 
-	for (int i = 0; i < FONT_MAX; i++) {
-		if (c->fonts[i].file != NULL) {
-			free(c->fonts[i].file);
-			c->fonts[i].file = NULL;
-		}
-	}
-
 	for (int i = 0; i < FILEBROWSER_FONT_MAX; i++) {
 		if (c->browser.fonts[i].file != NULL) {
 			free(c->browser.fonts[i].file);
@@ -114,9 +107,9 @@ _get_value(const char *section, const char *key)
 #else
 #define ATOI(x) (strtol(x, NULL, 10))
 #define ATOF(x) (strtod(x, NULL))
-#define STRNCPY(a, b, c, d) (do {\
-len = strlen(c);\
-strncpy(a, c, ((len >= d) ? d : len));\
+#define STRNCPY(a, b, c, d) (do { \
+	len = strlen(c); \
+	strncpy(a, c, ((len >= d) ? d : len)); \
 } while (0))
 #endif
 
@@ -165,9 +158,9 @@ config_get_value(const char *section, const char *key, int type, void *out)
 bool
 parse_config(CONFIG *c)
 {
-	int inum;
-	float flt;
-	char *str = NULL;
+	static int inum;
+	static float flt;
+	static char *str;
 
 	/* FIXME: auto generate this code or auto-gen structure! */
 
@@ -178,20 +171,30 @@ parse_config(CONFIG *c)
 	config_get_value("window", "icon", CONFIG_AS_STRING, &str);
 	c->window.icon = str;
 
-	/* fonts */
-	config_get_value("font:browser", "file", CONFIG_AS_STRING, &str);
-	c->fonts[FONT_BROWSER].file = str;
-	config_get_value("font:browser", "size", CONFIG_AS_INT, &inum);
-	c->fonts[FONT_BROWSER].size = inum;
+
+	/* status */
+	config_get_value("colors:status", "background", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_BACKGROUND] = al_color_name(str);
+	config_get_value("colors:status", "foreground", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_FOREGROUND] = al_color_name(str);
+	config_get_value("colors:status", "border", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_BORDER] = al_color_name(str);
+	config_get_value("colors:status", "blink", CONFIG_AS_STRING, &str);
+	c->status.colors[STATUS_COLOR_BLINK] = al_color_name(str);
 
 	config_get_value("font:status", "file", CONFIG_AS_STRING, &str);
-	c->fonts[FONT_STATUS].file = str;
+	c->status.fonts[STATUS_FONT_DEFAULT].file = str;
 	config_get_value("font:status", "size", CONFIG_AS_INT, &inum);
-	c->fonts[FONT_STATUS].size = inum;
+	c->status.fonts[STATUS_FONT_DEFAULT].size = inum;
 
-	for (int i = 0; i < FONT_MAX; i++) { /* TODO */
-		c->fonts[i].flags = 0;
-	}
+	for (int i = 0; i < STATUS_FONT_MAX; i++)
+		c->status.fonts[i].flags = 0;
+
+	config_get_value("font:status", "px", CONFIG_AS_INT, &inum);
+	c->status.fonts[STATUS_FONT_DEFAULT].px = inum;
+	config_get_value("font:status", "py", CONFIG_AS_INT, &inum);
+	c->status.fonts[STATUS_FONT_DEFAULT].py = inum;
+
 
 	/* display */
 	config_get_value("display", "width", CONFIG_AS_INT, &inum);
@@ -206,7 +209,13 @@ parse_config(CONFIG *c)
 	config_get_value("display", "vsync", CONFIG_AS_INT, &inum);
 	c->display.vsync = !(inum == 0);
 
-	/* colors */
+
+	/* browser */
+	config_get_value("browser", "startpath", CONFIG_AS_STRING, &str);
+	c->browser.startpath = str;
+	config_get_value("browser", "scrollspeed", CONFIG_AS_INT, &inum);
+	c->browser.scrollspeed = inum;
+
 	config_get_value("colors:browser", "background", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_BACKGROUND] = al_color_name(str);
 	config_get_value("colors:browser", "foreground", CONFIG_AS_STRING, &str);
@@ -239,22 +248,24 @@ parse_config(CONFIG *c)
 	config_get_value("colors:browser:otf", "foreground", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_FONT_OTF_FG] = al_color_name(str);
 
-	config_get_value("colors:status", "background", CONFIG_AS_STRING, &str);
-	c->status.colors[STATUS_COLOR_BACKGROUND] = al_color_name(str);
-	config_get_value("colors:status", "foreground", CONFIG_AS_STRING, &str);
-	c->status.colors[STATUS_COLOR_FOREGROUND] = al_color_name(str);
-	config_get_value("colors:status", "border", CONFIG_AS_STRING, &str);
-	c->status.colors[STATUS_COLOR_BORDER] = al_color_name(str);
+	config_get_value("font:browser", "file", CONFIG_AS_STRING, &str);
+	c->browser.fonts[FILEBROWSER_FONT_DEFAULT].file = str;
+	config_get_value("font:browser", "size", CONFIG_AS_INT, &inum);
+	c->browser.fonts[FILEBROWSER_FONT_DEFAULT].size = inum;
+
+	for (int i = 0; i < FILEBROWSER_FONT_MAX; i++)
+		c->browser.fonts[i].flags = 0;
+
+	config_get_value("font:browser", "px", CONFIG_AS_INT, &inum);
+	c->browser.fonts[FILEBROWSER_FONT_DEFAULT].px = inum;
+	config_get_value("font:browser", "py", CONFIG_AS_INT, &inum);
+	c->browser.fonts[FILEBROWSER_FONT_DEFAULT].py = inum;
+
 
 	/* keyboard */
 	config_get_value("keyboard", "repeatrate", CONFIG_AS_INT, &inum);
 	c->keyboard.repeatrate = inum;
 
-	/*browser*/
-	config_get_value("browser", "startpath", CONFIG_AS_STRING, &str);
-	c->browser.startpath = str;
-	config_get_value("browser", "scrollspeed", CONFIG_AS_INT, &inum);
-	c->browser.scrollspeed = inum;
 
 	/* viewer */
 	for (int i = 0; i < VIEWER_MAX_PRESETS; i++) {
@@ -272,7 +283,10 @@ parse_config(CONFIG *c)
 	c->viewer.colors[FONTVIEWER_COLOR_BACKGROUND] = al_color_name(str);
 	config_get_value("colors:viewer", "foreground", CONFIG_AS_STRING, &str);
 	c->viewer.colors[FONTVIEWER_COLOR_FOREGROUND] = al_color_name(str);
+	config_get_value("colors:viewer", "border", CONFIG_AS_STRING, &str);
+	c->viewer.colors[FONTVIEWER_COLOR_BORDER] = al_color_name(str);
 
+	
 	/* typer */
 	config_get_value("font:typer", "file", CONFIG_AS_STRING, &str);
 	c->typer.fonts[TYPER_FONT_DEFAULT].file = str;
@@ -281,6 +295,10 @@ parse_config(CONFIG *c)
 
 	for (int i = 0; i < TYPER_FONT_MAX; i++)
 		c->typer.fonts[i].flags = 0;
+
+	config_get_value("typer", "blinkperiod", CONFIG_AS_FLOAT, &flt);
+	c->typer.blink_period = flt;
+
 
 	/* help */
 	config_get_value("colors:help", "background", CONFIG_AS_STRING, &str);
@@ -297,6 +315,29 @@ parse_config(CONFIG *c)
 
 	for (int i = 0; i < HELP_MENU_FONT_MAX; i++)
 		c->help.fonts[i].flags = 0;
+
+
+	/* error */
+	config_get_value("colors:error", "background", CONFIG_AS_STRING, &str);
+	c->error.colors[ERROR_COLOR_BACKGROUND] = al_color_name(str);
+	config_get_value("colors:error", "border", CONFIG_AS_STRING, &str);
+	c->error.colors[ERROR_COLOR_BORDER] = al_color_name(str);
+	config_get_value("colors:error", "heading", CONFIG_AS_STRING, &str);
+	c->error.colors[ERROR_COLOR_HEADING] = al_color_name(str);
+	config_get_value("colors:error", "message", CONFIG_AS_STRING, &str);
+	c->error.colors[ERROR_COLOR_MESSAGE] = al_color_name(str);
+	config_get_value("colors:error", "debugtext", CONFIG_AS_STRING, &str);
+	c->error.colors[ERROR_COLOR_DEBUG_TEXT] = al_color_name(str);
+	config_get_value("colors:error", "debugfile", CONFIG_AS_STRING, &str);
+	c->error.colors[ERROR_COLOR_DEBUG_FILE] = al_color_name(str);
+
+	config_get_value("font:error", "file", CONFIG_AS_STRING, &str);
+	c->error.fonts[ERROR_FONT_DEFAULT].file = str;
+	config_get_value("font:error", "size", CONFIG_AS_INT, &inum);
+	c->error.fonts[ERROR_FONT_DEFAULT].size = inum;
+
+	for (int i = 0; i < ERROR_FONT_MAX; i++)
+		c->error.fonts[i].flags = 0;
 
 	return true;
 }
