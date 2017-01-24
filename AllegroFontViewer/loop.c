@@ -252,6 +252,8 @@ loop(void)
 				case STATE_TYPING:
 					state = STATE_FONTVIEW;
 					fontviewer_set_text(viewer, typer_get_text(typer));
+					statusline_noblink(statusbar);
+					statusline_draw(statusbar, typer_get_text(typer));
 					break;
 				default:
 					break;
@@ -375,6 +377,8 @@ loop(void)
 					statusline_blink(statusbar);
 					statusline_draw(statusbar, typer_get_text(typer));
 				}
+				else
+					statusline_noblink(statusbar);
 			}
 			else if (ev.timer.source == timers[TIMER_KEYBOARD]) {
 				pressed = 0;
@@ -511,8 +515,6 @@ loop(void)
 				draw(filebrowser_bitmap(browser));
 				break;
 			case STATE_FONTVIEW:
-				statusline_noblink(statusbar);
-				statusline_draw(statusbar, typer_get_text(typer));
 				fontviewer_draw(viewer);
 				draw(fontviewer_bitmap(viewer));
 				break;
