@@ -172,6 +172,26 @@ parse_config(CONFIG *c)
 	c->window.icon = str;
 
 
+	/* display */
+	config_get_value("display", "width", CONFIG_AS_INT, &inum);
+	c->display.w = inum;
+
+	config_get_value("display", "height", CONFIG_AS_INT, &inum);
+	c->display.h = inum;
+
+	config_get_value("display", "rate", CONFIG_AS_FLOAT, &flt);
+	c->display.rate = flt;
+
+	config_get_value("display", "vsync", CONFIG_AS_INT, &inum);
+	c->display.vsync = !(inum == 0);
+
+	config_get_value("display", "fullscreen", CONFIG_AS_INT, &inum);
+	c->display.fullscreen = !(inum == 0);
+
+	config_get_value("display", "fswindowed", CONFIG_AS_INT, &inum);
+	c->display.fswindowed = !(inum == 0);
+
+
 	/* status */
 	config_get_value("colors:status", "background", CONFIG_AS_STRING, &str);
 	c->status.colors[STATUS_COLOR_BACKGROUND] = al_color_name(str);
@@ -194,20 +214,6 @@ parse_config(CONFIG *c)
 	c->status.fonts[STATUS_FONT_DEFAULT].px = inum;
 	config_get_value("font:status", "py", CONFIG_AS_INT, &inum);
 	c->status.fonts[STATUS_FONT_DEFAULT].py = inum;
-
-
-	/* display */
-	config_get_value("display", "width", CONFIG_AS_INT, &inum);
-	c->display.w = inum;
-
-	config_get_value("display", "height", CONFIG_AS_INT, &inum);
-	c->display.h = inum;
-
-	config_get_value("display", "rate", CONFIG_AS_FLOAT, &flt);
-	c->display.rate = flt;
-
-	config_get_value("display", "vsync", CONFIG_AS_INT, &inum);
-	c->display.vsync = !(inum == 0);
 
 
 	/* browser */

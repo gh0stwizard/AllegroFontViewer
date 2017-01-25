@@ -7,7 +7,8 @@
 static void set_window_icon(void);
 static void set_timers(void);
 static void die(const char *message);
-
+static ALLEGRO_DISPLAY * 
+create_display(ALLEGRO_MONITOR_INFO *mon, int w, int h);
 
 void
 init(void)
@@ -17,9 +18,16 @@ init(void)
 
 	/* always read configuration files after allegro initialization */
 	CFG = config_new(NULL);
+
+	if (!(monitor = al_malloc(sizeof(ALLEGRO_MONITOR_INFO))))
+		die("Failed to allocate monitor structure.");
 	
-	if (!(display = al_create_display(CFG->display.w, CFG->display.h)))
+	if (!(display = create_display(monitor, CFG->display.w, CFG->display.h)))
 		die("Failed to create display.");
+
+	CFG->display.w = al_get_display_width(display);
+	CFG->display.h = al_get_display_height(display);
+
 
 	/* install perepherial */
 
@@ -97,23 +105,30 @@ set_timers(void)
 }
 
 
-static void
-set_display(void)
+static ALLEGRO_DISPLAY *
+create_display(ALLEGRO_MONITOR_INFO *mon, int w, int h)
 {
-	/*TODO: use the code below :) */
+	ALLEGRO_DISPLAY *d;
 
-	monitor = calloc(1, sizeof(ALLEGRO_MONITOR_INFO));
-	if (al_get_monitor_info(0, monitor) & 0) {
-		al_set_new_display_flags(ALLEGRO_FULLSCREEN);
-		//al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
-		al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_REQUIRE);
-		display = al_create_display(monitor->x2 - monitor->x1, 
-			monitor->y2 - monitor->y1);
+	if (mon == NULL)
+		return NULL;
+
+	const int adapter = 0; /* TODO multiplie adapters support? */
+
+	if (CFG->display.fullscreen && al_get_monitor_info(adapter, mon)) {
+		al_set_new_display_flags((CFG->display.fswindowed) 
+			? ALLEGRO_FULLSCREEN_WINDOW
+			: ALLEGRO_FULLSCREEN);
+		al_set_new_display_option(ALLEGRO_VSYNC, (CFG->display.vsync) ? 1 : 2, 
+			ALLEGRO_REQUIRE);
+		d = al_create_display(mon->x2 - mon->x1, mon->y2 - mon->y1);
 	}
 	else {
 		al_set_new_display_flags(ALLEGRO_WINDOWED);
-		display = al_create_display(CFG->display.w, CFG->display.h);
+		d = al_create_display(w, h);
 	}
+
+	return d;
 }
 
 

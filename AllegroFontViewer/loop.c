@@ -29,7 +29,7 @@ static void
 draw(ALLEGRO_BITMAP *bmp);
 
 static bool
-try_load_font(void);
+try_load_file(void);
 
 enum {
 	STATE_DIRSLIST = 1,
@@ -227,7 +227,7 @@ loop(void)
 				switch (state) {
 				case STATE_DIRSLIST:
 					/* when selected is not a directory ... */
-					if (try_load_font())
+					if (try_load_file())
 						state = STATE_FONTVIEW;
 					/* otherwise just draw a new selected directory listing! */
 					break;
@@ -241,7 +241,7 @@ loop(void)
 				switch (state) {
 				case STATE_DIRSLIST:
 					/* when selected is not a directory ... */
-					if (try_load_font())
+					if (try_load_file())
 						state = STATE_FONTVIEW;
 					/* otherwise just draw a new selected directory listing! */
 					break;
@@ -560,22 +560,23 @@ draw(ALLEGRO_BITMAP *bmp)
 
 
 static bool
-try_load_font(void)
+try_load_file(void)
 {
 	static ALLEGRO_PATH *p;
 
-	/* when selected is not a directory ... */
-	if (!(filebrowser_browse_selected(browser))) {
-		p = filebrowser_get_selected_path(browser);
-		if (p != NULL) {
-			if (fontviewer_load_path(viewer, p)) {
-				al_destroy_path(p);
-				return true;
-			}
-			else
-				al_destroy_path(p);
-		}
-	}
+	if (filebrowser_browse_selected(browser))	/* this is a directory */
+		return false;
 
-	return false;
+	p = filebrowser_get_selected_path(browser);
+	if (p == NULL)
+		return false;
+
+	if (fontviewer_load_path(viewer, p)) {
+		al_destroy_path(p);
+		return true;
+	}
+	else {
+		al_destroy_path(p);
+		return false;
+	}
 }

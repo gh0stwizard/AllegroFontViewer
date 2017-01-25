@@ -28,6 +28,8 @@ typedef struct CONFIG {
 		int		w, h;
 		float	rate;
 		bool	vsync;
+		bool	fullscreen;
+		bool	fswindowed;
 	} display;
 	struct {
 		ALLEGRO_COLOR	colors[FILEBROWSER_COLOR_MAX];
