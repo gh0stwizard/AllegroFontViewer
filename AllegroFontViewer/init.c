@@ -1,7 +1,6 @@
 #include "main.h"
 #include "config.h"
 #include <assert.h>
-#include <stdio.h>
 
 
 static void set_window_icon(void);
@@ -9,6 +8,7 @@ static void set_timers(void);
 static void die(const char *message);
 static ALLEGRO_DISPLAY * 
 create_display(ALLEGRO_MONITOR_INFO *mon, int w, int h);
+
 
 void
 init(void)
@@ -25,6 +25,7 @@ init(void)
 	if (!(display = create_display(monitor, CFG->display.w, CFG->display.h)))
 		die("Failed to create display.");
 
+	/* we have to update w/h for fullscreen mode */
 	CFG->display.w = al_get_display_width(display);
 	CFG->display.h = al_get_display_height(display);
 
@@ -81,7 +82,7 @@ set_window_icon(void)
 {
 	const char *icon = CFG->window.icon;
 
-	if (al_filename_exists(icon)) {
+	if ((icon != NULL) && al_filename_exists(icon)) {
 		if (!(bitmaps[BITMAP_ICON] = al_load_bitmap(icon)))
 			die("Failed to load icon bitmap.");
 
@@ -94,13 +95,17 @@ static void
 set_timers(void)
 {
 	float values[TIMER_MAX];
-	values[0] = (1.0 / CFG->display.rate);
-	values[1] = (CFG->keyboard.repeatrate / 1000.0);
-	values[2] = CFG->typer.blink_period;
+	values[TIMER_STATUS]	= CFG->status.timeout;
+	values[TIMER_KEYBOARD]	= (CFG->keyboard.repeatrate / 1000.0);
+	values[TIMER_BLINK]		= CFG->typer.blink_period;
 
 	for (int i = 0; i < TIMER_MAX; i++) {
-		timers[i] = al_create_timer(values[i]);
-		assert(i >= 0 && timers[i] != NULL);
+		if (values[i] > 0.000000) {
+			timers[i] = al_create_timer(values[i]);
+			assert(timers[i] != NULL);
+		}
+		else
+			timers[i] = NULL;
 	}
 }
 
@@ -108,7 +113,7 @@ set_timers(void)
 static ALLEGRO_DISPLAY *
 create_display(ALLEGRO_MONITOR_INFO *mon, int w, int h)
 {
-	ALLEGRO_DISPLAY *d;
+	ALLEGRO_DISPLAY *d = NULL;
 
 	if (mon == NULL)
 		return NULL;

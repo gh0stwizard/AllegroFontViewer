@@ -193,6 +193,9 @@ parse_config(CONFIG *c)
 
 
 	/* status */
+	config_get_value("status", "timeout", CONFIG_AS_FLOAT, &flt);
+	c->status.timeout = flt;
+
 	config_get_value("colors:status", "background", CONFIG_AS_STRING, &str);
 	c->status.colors[STATUS_COLOR_BACKGROUND] = al_color_name(str);
 	config_get_value("colors:status", "foreground", CONFIG_AS_STRING, &str);
@@ -253,6 +256,11 @@ parse_config(CONFIG *c)
 	c->browser.colors[FILEBROWSER_COLOR_FONT_OTF_BG] = al_color_name(str);
 	config_get_value("colors:browser:otf", "foreground", CONFIG_AS_STRING, &str);
 	c->browser.colors[FILEBROWSER_COLOR_FONT_OTF_FG] = al_color_name(str);
+
+	config_get_value("colors:browser:ttc", "background", CONFIG_AS_STRING, &str);
+	c->browser.colors[FILEBROWSER_COLOR_FONT_TTC_BG] = al_color_name(str);
+	config_get_value("colors:browser:ttc", "foreground", CONFIG_AS_STRING, &str);
+	c->browser.colors[FILEBROWSER_COLOR_FONT_TTC_FG] = al_color_name(str);
 
 	config_get_value("font:browser", "file", CONFIG_AS_STRING, &str);
 	c->browser.fonts[FILEBROWSER_FONT_DEFAULT].file = str;

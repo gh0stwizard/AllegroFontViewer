@@ -10,8 +10,8 @@
 #include "FileBrowserSort.h"
 #endif
 
-#include <stdlib.h>
 #include <assert.h>
+
 
 static FILEBROWSER		*browser;
 static FONTVIEWER		*viewer;
@@ -22,14 +22,16 @@ static EVLOG			*statuslog;
 static ERROR			*errwin;
 static STATUSLINE		*statusbar;
 
+
 #define SAYF(fmt, ...) (evlog_pushf(statuslog, EVENT_SYSTEM_STATUS, fmt, __VA_ARGS__))
 #define SAY(us) (evlog_push(statuslog, EVENT_SYSTEM_STATUS, us))
+
 
 static void
 draw(ALLEGRO_BITMAP *bmp);
 
-static bool
-try_load_file(void);
+static int
+try_load_file(int this_state);
 
 enum {
 	STATE_DIRSLIST = 1,
@@ -52,6 +54,7 @@ enum {
 	BROWSER_KEY_LSHIFT_K = 0xa2,
 	BROWSER_KEY_LSHIFT_J = 0xa4,
 };
+
 
 void
 loop(void)
@@ -155,6 +158,7 @@ loop(void)
 
 		case EVENT_TYPE_STATUS:
 			redraw = true;
+			al_resume_timer(timers[TIMER_STATUS]);
 			statusline_draw(statusbar, (void *)ev.user.data2);
 			al_unref_user_event(&ev.user);
 			break;
@@ -175,7 +179,7 @@ loop(void)
 					SAYF("Size: %d  Height: %d  Ascent: %d  Descent: %d",
 						fontsize, fontattr->height,
 						fontattr->ascent, fontattr->descent);
-					free(fontattr);
+					al_free(fontattr);
 				}
 				break;
 			default:
@@ -223,13 +227,10 @@ loop(void)
 					break;
 				}
 				break;
-			case ALLEGRO_KEY_F: /* vim-like */
+			case ALLEGRO_KEY_F: /* vim-like; same as ENTER */
 				switch (state) {
 				case STATE_DIRSLIST:
-					/* when selected is not a directory ... */
-					if (try_load_file())
-						state = STATE_FONTVIEW;
-					/* otherwise just draw a new selected directory listing! */
+					state = try_load_file(STATE_DIRSLIST);
 					break;
 				case STATE_ERROR:
 				case STATE_FONTVIEW:
@@ -240,10 +241,7 @@ loop(void)
 			case ALLEGRO_KEY_ENTER:
 				switch (state) {
 				case STATE_DIRSLIST:
-					/* when selected is not a directory ... */
-					if (try_load_file())
-						state = STATE_FONTVIEW;
-					/* otherwise just draw a new selected directory listing! */
+					state = try_load_file(STATE_DIRSLIST);
 					break;
 				case STATE_ERROR:
 				case STATE_FONTVIEW:
@@ -272,21 +270,13 @@ loop(void)
 				}
 				break;
 			case ALLEGRO_KEY_D:
-				switch (state) {
-				case STATE_DIRSLIST:
-					filebrowser_browse_parent(browser);
-					break;
-				case STATE_FONTVIEW:
-					state = STATE_DIRSLIST;
-					break;
-				}
-				break;
 			case ALLEGRO_KEY_BACKSPACE:
 				switch (state) {
 				case STATE_DIRSLIST:
 					filebrowser_browse_parent(browser);
 					break;
 				case STATE_FONTVIEW:
+					statusline_draw(statusbar, NULL);
 					state = STATE_DIRSLIST;
 					break;
 				}
@@ -368,8 +358,16 @@ loop(void)
 			break;
 
 		case ALLEGRO_EVENT_TIMER:
-			if (ev.timer.source == timers[TIMER_MAIN]) {
-				/* FIXME: is this really need ? */
+			if (ev.timer.source == timers[TIMER_STATUS]) {
+				switch (state) {
+				case STATE_DIRSLIST:
+				case STATE_HELP:
+				case STATE_ERROR:
+					redraw = true;
+					statusline_draw(statusbar, NULL);
+					break;
+				}
+				al_stop_timer(ev.timer.source);
 			}
 			else if (ev.timer.source == timers[TIMER_BLINK]) {
 				if (state == STATE_TYPING) {
@@ -377,8 +375,6 @@ loop(void)
 					statusline_blink(statusbar);
 					statusline_draw(statusbar, typer_get_text(typer));
 				}
-				else
-					statusline_noblink(statusbar);
 			}
 			else if (ev.timer.source == timers[TIMER_KEYBOARD]) {
 				pressed = 0;
@@ -510,11 +506,12 @@ loop(void)
 			redraw = false;
 			switch (state) {
 			case STATE_DIRSLIST:
-				statusline_draw(statusbar, NULL);
+				statusline_noblink(statusbar);
 				filebrowser_draw(browser);
 				draw(filebrowser_bitmap(browser));
 				break;
 			case STATE_FONTVIEW:
+				statusline_noblink(statusbar);
 				fontviewer_draw(viewer);
 				draw(fontviewer_bitmap(viewer));
 				break;
@@ -522,11 +519,11 @@ loop(void)
 				draw(fontviewer_bitmap(viewer));
 				break;
 			case STATE_HELP:
-				statusline_draw(statusbar, NULL);
+				statusline_noblink(statusbar);
 				draw(helpmenu_bitmap(help));
 				break;
 			case STATE_ERROR:
-				statusline_draw(statusbar, NULL);
+				statusline_noblink(statusbar);
 				draw(error_bitmap(errwin));
 				break;
 			default:
@@ -559,24 +556,69 @@ draw(ALLEGRO_BITMAP *bmp)
 }
 
 
-static bool
-try_load_file(void)
+#if defined(ALLEGRO_WINDOWS)
+#define STRNCASECMP(s1, s2, n) (_strnicmp((s1), (s2), (n)))
+#else
+#define STRNCASECMP(s1, s2, n) (strncasecmp((s1), (s2), (n)))
+#endif
+
+#define LOAD_FONT	0
+#define LOAD_IMAGE	1
+#define LOAD_TEXT	2
+
+
+static int
+try_load_file(int this_state)
 {
 	static ALLEGRO_PATH *p;
+	static const char *ext;
+	static int todo, state;
+	static bool success;
+
 
 	if (filebrowser_browse_selected(browser))	/* this is a directory */
-		return false;
+		return this_state;
 
 	p = filebrowser_get_selected_path(browser);
 	if (p == NULL)
-		return false;
+		return this_state;
 
-	if (fontviewer_load_path(viewer, p)) {
-		al_destroy_path(p);
-		return true;
+	todo = LOAD_FONT;
+	ext = al_get_path_extension(p);
+
+	if (STRNCASECMP(ext, ".bmp", 4) == 0) {
+		todo = LOAD_IMAGE;
 	}
-	else {
-		al_destroy_path(p);
-		return false;
+	else if (STRNCASECMP(ext, ".png", 4) == 0) {
+		todo = LOAD_IMAGE;
 	}
+	else if (STRNCASECMP(ext, ".jpg", 4) == 0) {
+		todo = LOAD_IMAGE;
+	}
+	else if (STRNCASECMP(ext, ".jpeg", 5) == 0) {
+		todo = LOAD_IMAGE;
+	}
+	else if (STRNCASECMP(ext, ".txt", 4) == 0) {
+		todo = LOAD_TEXT;
+	}
+
+	switch (todo) {
+	case LOAD_FONT:
+		success = fontviewer_load_path(viewer, p);
+		al_destroy_path(p);
+		state = STATE_FONTVIEW;
+		break;
+	case LOAD_IMAGE:
+	case LOAD_TEXT:
+		success = false;
+		SAYF("Not implemented yet.");
+		//state = STATE_TEXTVIEW;
+		break;
+	default:
+		success = false;
+		SAYF("Unknown file type. THIS SHOULD NOT HAVE HAPPENED!");
+		break;
+	}
+
+	return (success) ? state : this_state;
 }

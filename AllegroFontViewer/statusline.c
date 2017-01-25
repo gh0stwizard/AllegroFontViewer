@@ -132,5 +132,6 @@ void
 statusline_noblink(STATUSLINE *sl)
 {
 	assert(sl != NULL);
-	sl->blink = false;
+	if (sl->blink)
+		sl->blink = false;
 }

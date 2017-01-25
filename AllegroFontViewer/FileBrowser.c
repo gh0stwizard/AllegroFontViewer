@@ -482,6 +482,7 @@ filebrowser_draw(FILEBROWSER *fb)
 	static ALLEGRO_COLOR sbg, sfg;	/* same as above for the selected el. */
 	static ALLEGRO_COLOR ttf_bg, ttf_fg;
 	static ALLEGRO_COLOR otf_bg, otf_fg;
+	static ALLEGRO_COLOR ttc_bg, ttc_fg;
 
 	assert(fb != NULL);
 	F = fb->fonts[FILEBROWSER_FONT_DEFAULT].font;
@@ -541,6 +542,8 @@ filebrowser_draw(FILEBROWSER *fb)
 	ttf_fg = fb->colors[FILEBROWSER_COLOR_FONT_TTF_FG];
 	otf_bg = fb->colors[FILEBROWSER_COLOR_FONT_OTF_BG];
 	otf_fg = fb->colors[FILEBROWSER_COLOR_FONT_OTF_FG];
+	ttc_bg = fb->colors[FILEBROWSER_COLOR_FONT_TTC_BG];
+	ttc_fg = fb->colors[FILEBROWSER_COLOR_FONT_TTC_FG];
 
 	/* in case if something changed in the previous directory */
 	if (fb->selected >= (vector_count(fb->d) + vector_count(fb->f)))
@@ -610,6 +613,10 @@ filebrowser_draw(FILEBROWSER *fb)
 			else if (CMP(ext, ".otf", 5) == 0) {
 				al_draw_filled_rectangle(x1, y1, x2, y2, otf_bg);
 				al_draw_ustr(F, otf_fg, fx, fy, 0, ustr);
+			}
+			else if (CMP(ext, ".ttc", 5) == 0) {
+				al_draw_filled_rectangle(x1, y1, x2, y2, ttc_bg);
+				al_draw_ustr(F, ttc_fg, fx, fy, 0, ustr);
 			}
 			else {
 				al_draw_filled_rectangle(x1, y1, x2, y2, bg);

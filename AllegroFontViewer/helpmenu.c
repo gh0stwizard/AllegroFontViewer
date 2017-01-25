@@ -123,8 +123,10 @@ helpmenu_draw(HELP_MENU *help)
 	h = help->h;
 	b = help->b;
 
-	int px = 10;
-	int py = 2;
+	/* FIXME */
+	const int px = 10;
+	const int py = 2;
+
 	int fh = help->fonts[HELP_MENU_FONT_DEFAULT].height;
 	int lh = help->fonts[HELP_MENU_FONT_DEFAULT].size / 2 + py;
 
