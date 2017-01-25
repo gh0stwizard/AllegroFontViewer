@@ -1,5 +1,5 @@
 #include "statusline.h"
-#include <stdlib.h>
+
 #include <assert.h>
 #include <stdarg.h>
 
@@ -12,13 +12,14 @@ struct STATUSLINE {
 	FONT fonts[STATUS_FONT_MAX];
 	bool blink;
 	int blink_w;
+	ALLEGRO_USTR *us;
 };
 
 
 STATUSLINE *
 statusline_new(int w, int h, int px, int py)
 {
-	STATUSLINE *sl = malloc(sizeof(STATUSLINE));
+	STATUSLINE *sl = al_malloc(sizeof(STATUSLINE));
 
 	assert(sl != NULL);
 	sl->w = w;
@@ -26,8 +27,12 @@ statusline_new(int w, int h, int px, int py)
 	sl->px = px;
 	sl->py = py;
 	sl->b = al_create_bitmap(sl->w, sl->h);
-	sl->blink_w = 10;
 	assert(sl->b != NULL);
+
+	sl->blink_w = 10;
+	sl->blink = false;
+
+	sl->us = al_ustr_new("");
 
 	return sl;
 }
@@ -38,8 +43,11 @@ statusline_destroy(STATUSLINE *sl)
 	if (sl == NULL)
 		return;
 
-	if (sl->b)
+	if (sl->b != NULL)
 		al_destroy_bitmap(sl->b);
+
+	if (sl->us != NULL)
+		al_ustr_free(sl->us);
 
 	for (int i = 0; i < STATUS_FONT_MAX; i++) {
 		if (sl->fonts[i].font != NULL) {
@@ -48,7 +56,7 @@ statusline_destroy(STATUSLINE *sl)
 		}
 	}
 
-	free(sl);
+	al_free(sl);
 }
 
 
@@ -94,7 +102,7 @@ statusline_bitmap(STATUSLINE *sl)
 
 
 void
-statusline_draw(STATUSLINE *sl, const ALLEGRO_USTR *us)
+statusline_draw(STATUSLINE *sl)
 {
 	static int px, py;
 	static FONT *F;
@@ -103,23 +111,35 @@ statusline_draw(STATUSLINE *sl, const ALLEGRO_USTR *us)
 	px = sl->px;
 	py = sl->py;
 	F = &sl->fonts[STATUS_FONT_DEFAULT];
+
 	al_set_target_bitmap(sl->b);
 	al_clear_to_color(sl->colors[STATUS_COLOR_BACKGROUND]);
+
 	al_draw_rectangle(px, 0, sl->w - px, sl->h - py,
 		sl->colors[STATUS_COLOR_BORDER], 1);
 
-	if (us != NULL) {
-		al_draw_ustr(F->font,
-			sl->colors[STATUS_COLOR_FOREGROUND], F->px, F->py, 0, us);
+	al_draw_ustr(F->font,
+		sl->colors[STATUS_COLOR_FOREGROUND], F->px, F->py, 0, sl->us);
 
-		if (sl->blink) {
-			int x = al_get_ustr_width(F->font, us) 
-				+ al_get_glyph_width(F->font, 0x0001);
-			al_draw_filled_rectangle(x, F->py, x + sl->blink_w, F->height,
-				sl->colors[STATUS_COLOR_BLINK]);
-		}
+	if (sl->blink) {
+		int x = al_get_ustr_width(F->font, sl->us)
+			+ al_get_glyph_width(F->font, 0x0001);
+		al_draw_filled_rectangle(x, F->py, x + sl->blink_w, F->height,
+			sl->colors[STATUS_COLOR_BLINK]);
 	}
 }
+
+
+void
+statusline_type(STATUSLINE *sl, const ALLEGRO_USTR *us)
+{
+	assert(sl != NULL);
+	al_ustr_truncate(sl->us, 0);
+
+	if (us != NULL)
+		al_ustr_append(sl->us, us);
+}
+
 
 void
 statusline_blink(STATUSLINE *sl)
@@ -134,4 +154,22 @@ statusline_noblink(STATUSLINE *sl)
 	assert(sl != NULL);
 	if (sl->blink)
 		sl->blink = false;
+}
+
+
+void
+statusline_resize(STATUSLINE *self, int w, int h)
+{
+	assert(self != NULL);
+
+	self->w = w;
+	self->h = h;
+
+	if (self->b != NULL) {
+		al_destroy_bitmap(self->b);
+		self->b = NULL;
+	}
+
+	self->b = al_create_bitmap(self->w, self->h);
+	assert(self->b);
 }

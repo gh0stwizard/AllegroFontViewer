@@ -1,7 +1,6 @@
 #include "helpmenu.h"
 #include "colors.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 
@@ -31,7 +30,7 @@ struct HELP_MENU {
 HELP_MENU *
 helpmenu_new(int width, int height)
 {
-	HELP_MENU *help = calloc(1, sizeof(HELP_MENU));
+	HELP_MENU *help = al_calloc(1, sizeof(HELP_MENU));
 	assert(help != NULL);
 
 	help->w = width;
@@ -48,7 +47,7 @@ helpmenu_destroy(HELP_MENU *h)
 	if (h == NULL)
 		return;
 
-	free(h);
+	al_free(h);
 }
 
 ALLEGRO_BITMAP *
@@ -59,7 +58,7 @@ helpmenu_bitmap(HELP_MENU *help)
 }
 
 static ALLEGRO_BITMAP *
-create_hotkey_bitmap(ALLEGRO_FONT *font, const char *text, ALLEGRO_COLOR bg, 
+create_hotkey_bitmap(ALLEGRO_FONT *font, const char *text, ALLEGRO_COLOR bg,
 	ALLEGRO_COLOR fg)
 {
 	static int w, h;
@@ -91,7 +90,7 @@ draw_keylist(int start, int end, char *desc[], int keys[], KLDAT *data)
 	static ALLEGRO_BITMAP *keybmp;
 
 	for (int i = start; (i < end) && (desc[i] != NULL); i++) {
-		keybmp = create_hotkey_bitmap(data->font, al_keycode_to_name(keys[i]), 
+		keybmp = create_hotkey_bitmap(data->font, al_keycode_to_name(keys[i]),
 			data->keybg, data->keyfg);
 		al_set_target_bitmap(data->bb);
 		al_draw_text(data->font, data->fg, data->x1, data->y1, 0, desc[i]);
@@ -211,7 +210,7 @@ helpmenu_draw(HELP_MENU *help)
 	lh = draw_keylist(0, 3, desc, keys, &dat);
 
 	lh += fh + py;
-	al_draw_text(font, color_heading, px, lh, 0, 
+	al_draw_text(font, color_heading, px, lh, 0,
 		"Controls: Directory Listing Mode");
 	lh += fh + py;
 	dat.y1 = lh;
@@ -224,7 +223,7 @@ helpmenu_draw(HELP_MENU *help)
 	dat.y1 = lh;
 	dat.y2 = lh;
 	lh = draw_keylist(10, 13, desc, keys, &dat);
-	al_draw_text(font, fg, px, lh, 0, 
+	al_draw_text(font, fg, px, lh, 0,
 		"Point a Mouse to see a font information");
 
 	lh += 2 * (fh + py);
@@ -233,7 +232,7 @@ helpmenu_draw(HELP_MENU *help)
 	dat.y1 = lh;
 	dat.y2 = lh;
 	lh = draw_keylist(13, 17, desc, keys, &dat);
-//	al_draw_text(font, fg, px, lh, 0, "Point a Mouse to a font information");
+	//	al_draw_text(font, fg, px, lh, 0, "Point a Mouse to a font information");
 }
 
 void
@@ -265,4 +264,22 @@ helpmenu_load_fonts(HELP_MENU *help, FONT fontlist[])
 		help->fonts[i].font = font;
 		help->fonts[i].height = al_get_font_line_height(font);
 	}
+}
+
+
+void
+helpmenu_resize(HELP_MENU *self, int w, int h)
+{
+	assert(self != NULL);
+
+	self->w = w;
+	self->h = h;
+
+	if (self->b != NULL) {
+		al_destroy_bitmap(self->b);
+		self->b = NULL;
+	}
+
+	self->b = al_create_bitmap(self->w, self->h);
+	assert(self->b);
 }

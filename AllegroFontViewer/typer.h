@@ -44,5 +44,8 @@ typer_set_text(TYPER *t, const ALLEGRO_USTR *u);
 void
 typer_set_text_cstr(TYPER *t, const char *str);
 
+void
+typer_resize(TYPER *self, int w, int h);
+
 
 #endif /* _AFV_TYPER_H__ */

@@ -36,5 +36,8 @@ helpmenu_set_colors(HELP_MENU *h, ALLEGRO_COLOR list[]);
 void
 helpmenu_load_fonts(HELP_MENU *help, FONT fontlist[]);
 
+void
+helpmenu_resize(HELP_MENU *self, int w, int h);
+
 
 #endif /* _AFV_HELPMENU_H__ */

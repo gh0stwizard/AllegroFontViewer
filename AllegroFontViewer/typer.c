@@ -1,6 +1,5 @@
 #include "typer.h"
 #include "colors.h"
-#include <stdlib.h>
 #include <assert.h>
 
 
@@ -16,10 +15,11 @@ struct TYPER {
 	} font;
 };
 
+
 TYPER *
 typer_new(int w, int h)
 {
-	TYPER *t = malloc(sizeof(TYPER));
+	TYPER *t = al_malloc(sizeof(TYPER));
 
 	assert(t != NULL);
 	t->w = w;
@@ -37,14 +37,16 @@ typer_new(int w, int h)
 	return t;
 }
 
+
 void
 typer_destroy(TYPER *t)
 {
 	if (t == NULL)
 		return;
 
-	free(t);
+	al_free(t);
 }
+
 
 ALLEGRO_BITMAP *
 typer_bitmap(TYPER *t)
@@ -53,12 +55,14 @@ typer_bitmap(TYPER *t)
 	return t->b;
 }
 
+
 void
 typer_type(TYPER *t, const char *cstr)
 {
 	assert(t != NULL);
 	al_ustr_append_cstr(t->text, cstr);
 }
+
 
 void
 typer_remove(TYPER *t)
@@ -70,12 +74,14 @@ typer_remove(TYPER *t)
 	al_ustr_remove_chr(u, al_ustr_offset(u, -1));
 }
 
+
 void
 typer_truncate(TYPER *t)
 {
 	assert(t != NULL);
 	al_ustr_truncate(t->text, 0);
 }
+
 
 void
 typer_draw(TYPER *t)
@@ -86,9 +92,10 @@ typer_draw(TYPER *t)
 	bg = COLOR_NORMAL_BLACK;
 	fg = COLOR_BRIGHT_GREEN;
 	al_set_target_bitmap(t->b);
-	al_clear_to_color(bg);	
+	al_clear_to_color(bg);
 	al_draw_ustr(t->font.ptr, fg, t->x, t->y, 0, t->text);
 }
+
 
 bool
 typer_load_font(TYPER *t, FONT fi)
@@ -111,12 +118,14 @@ typer_load_font(TYPER *t, FONT fi)
 	return false;
 }
 
+
 const ALLEGRO_USTR *
 typer_get_text(TYPER *t)
 {
 	assert(t != NULL);
 	return t->text;
 }
+
 
 void
 typer_set_text(TYPER *t, const ALLEGRO_USTR *u)
@@ -127,10 +136,29 @@ typer_set_text(TYPER *t, const ALLEGRO_USTR *u)
 	al_ustr_append(t->text, u);
 }
 
+
 void
 typer_set_text_cstr(TYPER *t, const char *str)
 {
 	assert(t != NULL);
 	al_ustr_truncate(t->text, 0);
 	al_ustr_append_cstr(t->text, str);
+}
+
+
+void
+typer_resize(TYPER *self, int w, int h)
+{
+	assert(self != NULL);
+
+	self->w = w;
+	self->h = h;
+
+	if (self->b != NULL) {
+		al_destroy_bitmap(self->b);
+		self->b = NULL;
+	}
+
+	self->b = al_create_bitmap(self->w, self->h);
+	assert(self->b);
 }

@@ -3,7 +3,6 @@
 #include "colors.h"
 #include "events.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 
@@ -34,7 +33,7 @@ fontviewer_new(int width, int height)
 {
 	static FONTVIEWER *fv;
 
-	fv = calloc(1, sizeof(FONTVIEWER));
+	fv = al_calloc(1, sizeof(FONTVIEWER));
 	assert(fv != NULL);
 
 	fv->fonts = vector_new();
@@ -94,7 +93,7 @@ fontviewer_destroy(FONTVIEWER *fv)
 
 	al_destroy_user_event_source(&(fv->event_source));
 
-	free(fv);
+	al_free(fv);
 }
 
 bool
@@ -211,7 +210,7 @@ fontviewer_draw(FONTVIEWER *fv)
 			break;
 	}
 
-	free(str);
+	al_free(str);
 }
 
 ALLEGRO_BITMAP *
@@ -243,11 +242,11 @@ event_dtor(ALLEGRO_USER_EVENT *ue)
 {
 	ALLEGRO_EVENT *e = (ALLEGRO_EVENT *)ue;
 #if defined(_DEBUG)
-	al_ustr_free( (void *)e->user.data1 );
+	al_ustr_free((void *)e->user.data1);
 #endif
-	al_ustr_free( (void *)e->user.data2 );
-	al_ustr_free( (void *)e->user.data3 );
-	al_ustr_free( (void *)e->user.data4 );
+	al_ustr_free((void *)e->user.data2);
+	al_ustr_free((void *)e->user.data3);
+	al_ustr_free((void *)e->user.data4);
 }
 
 static void
@@ -336,7 +335,7 @@ fontviewer_get_attr_by_size(FONTVIEWER *fv, int size)
 
 	if (i >= 0 && i < count) {
 		assert(vector_get(fv->fonts, i, &font));
-		attr = malloc(sizeof(FONT_ATTR));
+		attr = al_malloc(sizeof(FONT_ATTR));
 		assert(attr != NULL);
 		attr->height = al_get_font_line_height(font);
 		attr->ascent = al_get_font_ascent(font);
@@ -346,4 +345,22 @@ fontviewer_get_attr_by_size(FONTVIEWER *fv, int size)
 	}
 	else
 		return NULL;
+}
+
+
+void
+fontviewer_resize(FONTVIEWER *self, int w, int h)
+{
+	assert(self != NULL);
+
+	self->w = w;
+	self->h = h;
+
+	if (self->b != NULL) {
+		al_destroy_bitmap(self->b);
+		self->b = NULL;
+	}
+
+	self->b = al_create_bitmap(self->w, self->h);
+	assert(self->b);
 }

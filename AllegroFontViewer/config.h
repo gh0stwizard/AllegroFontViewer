@@ -44,6 +44,7 @@ typedef struct CONFIG {
 		ALLEGRO_COLOR	colors[STATUS_COLOR_MAX];
 		FONT			fonts[STATUS_FONT_MAX];
 		float			timeout;
+		int				height;
 	} status;
 	struct {
 		int minsize, maxsize;

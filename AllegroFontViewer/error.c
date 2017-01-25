@@ -1,6 +1,5 @@
 #include "error.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 
@@ -15,7 +14,7 @@ struct ERROR {
 ERROR *
 error_new(int w, int h)
 {
-	ERROR *error = malloc(sizeof(ERROR));
+	ERROR *error = al_malloc(sizeof(ERROR));
 	assert(error != NULL);
 
 	error->w = w;
@@ -36,7 +35,7 @@ error_destroy(ERROR *err)
 	if (err->b)
 		al_destroy_bitmap(err->b);
 
-	free(err);
+	al_free(err);
 }
 
 
@@ -125,4 +124,22 @@ error_load_fonts(ERROR *err, FONT fontlist[])
 		err->fonts[i].font = font;
 		err->fonts[i].height = al_get_font_line_height(font);
 	}
+}
+
+
+void
+error_resize(ERROR *self, int w, int h)
+{
+	assert(self != NULL);
+
+	self->w = w;
+	self->h = h;
+
+	if (self->b != NULL) {
+		al_destroy_bitmap(self->b);
+		self->b = NULL;
+	}
+
+	self->b = al_create_bitmap(self->w, self->h);
+	assert(self->b);
 }

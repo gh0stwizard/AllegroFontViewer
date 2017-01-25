@@ -16,4 +16,4 @@ V better error notification support
 * add a magnifier for the view font mode
 V add help menu
 	* improve help menu (show vim keys, list all keys per one action, etc)
-* add abillity to run the program without any configuration files
+? add abillity to run the program without any configuration files

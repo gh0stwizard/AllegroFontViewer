@@ -37,7 +37,10 @@ ALLEGRO_BITMAP *
 statusline_bitmap(STATUSLINE *sl);
 
 void
-statusline_draw(STATUSLINE *sl, const ALLEGRO_USTR *us);
+statusline_draw(STATUSLINE *sl);
+
+void
+statusline_type(STATUSLINE *sl, const ALLEGRO_USTR *us);
 
 void
 statusline_blink(STATUSLINE *sl);
@@ -45,5 +48,7 @@ statusline_blink(STATUSLINE *sl);
 void
 statusline_noblink(STATUSLINE *sl);
 
+void
+statusline_resize(STATUSLINE *self, int w, int h);
 
 #endif /* _AFV_STATUSLINE_H__ */

@@ -166,6 +166,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config.c" />
+    <ClCompile Include="display.c" />
     <ClCompile Include="error.c" />
     <ClCompile Include="evlog.c" />
     <ClCompile Include="FileBrowser.c" />
@@ -186,6 +187,7 @@
   <ItemGroup>
     <ClInclude Include="colors.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="display.h" />
     <ClInclude Include="engine.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="events.h" />

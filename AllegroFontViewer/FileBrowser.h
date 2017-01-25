@@ -95,5 +95,11 @@ filebrowser_get_selected_path(FILEBROWSER *fb);
 void
 filebrowser_set_colors(FILEBROWSER *fb, ALLEGRO_COLOR list[]);
 
+ALLEGRO_PATH *
+filebrowser_get_current_path(FILEBROWSER *fb);
+
+void
+filebrowser_resize(FILEBROWSER *self, int w, int h);
+
 
 #endif /* _AFV_FILEBROWSER_H__ */

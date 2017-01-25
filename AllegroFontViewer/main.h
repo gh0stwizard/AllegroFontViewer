@@ -23,7 +23,6 @@ enum {
 ALLEGRO_TRANSFORM		*camera;
 ALLEGRO_DISPLAY			*display;
 ALLEGRO_EVENT_QUEUE		*event_queue;
-ALLEGRO_MONITOR_INFO	*monitor;
 
 ALLEGRO_TIMER			*timers[TIMER_MAX];
 ALLEGRO_BITMAP			*bitmaps[BITMAP_MAX];

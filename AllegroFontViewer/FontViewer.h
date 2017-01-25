@@ -56,4 +56,8 @@ fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max);
 FONT_ATTR *
 fontviewer_get_attr_by_size(FONTVIEWER *fv, int size);
 
+void
+fontviewer_resize(FONTVIEWER *self, int w, int h);
+
+
 #endif /* _AFV_FONTVIEWER_H__ */

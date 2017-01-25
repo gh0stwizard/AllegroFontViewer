@@ -1,6 +1,5 @@
 #include "config.h"
 
-#include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
 
@@ -16,7 +15,7 @@ config_new(const char * const file)
 {
 	static ALLEGRO_PATH *p;
 
-	CONFIG *cfg = calloc(1, sizeof(CONFIG));
+	CONFIG *cfg = al_calloc(1, sizeof(CONFIG));
 	assert(cfg != NULL);
 
 	if (file == NULL) {
@@ -69,22 +68,22 @@ config_destroy(CONFIG *c)
 		return;
 
 	if (c->window.title)
-		free(c->window.title);
+		al_free(c->window.title);
 
 	if (c->window.icon)
-		free(c->window.icon);
+		al_free(c->window.icon);
 
 	for (int i = 0; i < FILEBROWSER_FONT_MAX; i++) {
 		if (c->browser.fonts[i].file != NULL) {
-			free(c->browser.fonts[i].file);
+			al_free(c->browser.fonts[i].file);
 			c->browser.fonts[i].file = NULL;
 		}
 	}
 
 	if (c->browser.startpath != NULL)
-		free(c->browser.startpath);
+		al_free(c->browser.startpath);
 
-	free(c);
+	al_free(c);
 }
 
 static const char *
@@ -144,7 +143,7 @@ config_get_value(const char *section, const char *key, int type, void *out)
 
 	case CONFIG_AS_STRING:
 		size = sizeof(char) * (STR_BUFSIZE + 1);
-		dst = (char *)malloc(size);
+		dst = (char *)al_malloc(size);
 		assert(dst != NULL);
 		len = strlen(src);
 		STRNCPY(dst, size, src, STR_BUFSIZE);
@@ -195,6 +194,9 @@ parse_config(CONFIG *c)
 	/* status */
 	config_get_value("status", "timeout", CONFIG_AS_FLOAT, &flt);
 	c->status.timeout = flt;
+
+	config_get_value("status", "height", CONFIG_AS_INT, &inum);
+	c->status.height = inum;
 
 	config_get_value("colors:status", "background", CONFIG_AS_STRING, &str);
 	c->status.colors[STATUS_COLOR_BACKGROUND] = al_color_name(str);

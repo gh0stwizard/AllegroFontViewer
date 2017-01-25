@@ -50,5 +50,8 @@ error_set_colors(ERROR *err, ALLEGRO_COLOR list[]);
 void
 error_load_fonts(ERROR *err, FONT fontlist[]);
 
+void
+error_resize(ERROR *self, int w, int h);
+
 
 #endif /* _AFV_ERROR_H__ */

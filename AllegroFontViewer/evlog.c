@@ -1,5 +1,5 @@
 #include "evlog.h"
-#include <stdlib.h>
+
 #include <assert.h>
 #include <stdarg.h>
 
@@ -13,7 +13,7 @@ struct EVLOG {
 EVLOG *
 evlog_new(int evid)
 {
-	EVLOG *evlog = malloc(sizeof(EVLOG));
+	EVLOG *evlog = al_malloc(sizeof(EVLOG));
 
 	assert(evlog != NULL);
 	al_init_user_event_source(&(evlog->event_source));
@@ -31,7 +31,7 @@ evlog_destroy(EVLOG *evlog)
 		return;
 
 	al_destroy_user_event_source(&(evlog->event_source));
-	free(evlog);
+	al_free(evlog);
 }
 
 

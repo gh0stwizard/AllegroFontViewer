@@ -2,9 +2,12 @@
 #include "vector.h"
 #include "colors.h"
 
-#include <stdlib.h>
 #include <assert.h>
-#include <stdio.h>
+#if defined(ALLEGRO_WINDOWS)
+#include <string.h>
+#else
+#include <strings.h>
+#endif
 
 
 struct FILEBROWSER {
@@ -35,6 +38,7 @@ struct FILEBROWSER {
 		size_t files;
 	} counter;
 };
+
 
 FILEBROWSER *
 filebrowser_new(int width, int height)
@@ -85,6 +89,7 @@ filebrowser_new(int width, int height)
 	return fb;
 }
 
+
 void
 filebrowser_destroy(FILEBROWSER * fb)
 {
@@ -124,8 +129,9 @@ filebrowser_destroy(FILEBROWSER * fb)
 	fb->f = NULL;
 	fb->d = NULL;
 
-	free(fb);
+	al_free(fb);
 }
+
 
 bool
 filebrowser_load_fonts(FILEBROWSER *fb, FONT fontlist[])
@@ -153,6 +159,7 @@ filebrowser_load_fonts(FILEBROWSER *fb, FONT fontlist[])
 	return true;
 }
 
+
 bool
 filebrowser_set_font_padding(FILEBROWSER *fb, FILEBROWSER_FONT_ID fontid,
 	int px, int py)
@@ -163,6 +170,7 @@ filebrowser_set_font_padding(FILEBROWSER *fb, FILEBROWSER_FONT_ID fontid,
 	fb->fonts[fontid].py = py;
 	return true;
 }
+
 
 static int
 fs_entry_cb(ALLEGRO_FS_ENTRY *e, void *extra)
@@ -191,6 +199,7 @@ fs_entry_cb(ALLEGRO_FS_ENTRY *e, void *extra)
 
 	return ALLEGRO_FOR_EACH_FS_ENTRY_SKIP; /* no recursion */
 }
+
 
 bool
 filebrowser_browse_path(FILEBROWSER *fb, const char *path)
@@ -226,10 +235,10 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 			 * 2. Is ICU fits here better than al_ustr_compare?
 			 */
 			ALLEGRO_PATH *p = al_create_path_for_directory(ename);
-			ALLEGRO_USTR *old = al_ustr_new(al_path_cstr(fb->previous.p, 
+			ALLEGRO_USTR *old = al_ustr_new(al_path_cstr(fb->previous.p,
 				ALLEGRO_NATIVE_PATH_SEP));
-			ALLEGRO_USTR *cur = al_ustr_new(al_path_cstr(p, 
-				ALLEGRO_NATIVE_PATH_SEP));			
+			ALLEGRO_USTR *cur = al_ustr_new(al_path_cstr(p,
+				ALLEGRO_NATIVE_PATH_SEP));
 			if (al_ustr_compare(cur, old) == 0) {
 				selected = fb->previous.selected;
 				startpos = fb->previous.startpos;
@@ -285,6 +294,7 @@ done:
 	return retval;
 }
 
+
 bool
 filebrowser_browse_selected(FILEBROWSER *fb)
 {
@@ -301,6 +311,7 @@ filebrowser_browse_selected(FILEBROWSER *fb)
 	else
 		return false;
 }
+
 
 bool
 filebrowser_browse_parent(FILEBROWSER *fb)
@@ -324,6 +335,7 @@ filebrowser_browse_parent(FILEBROWSER *fb)
 	return false;
 }
 
+
 static void
 filebrowser_reset_vector(VECTOR *V)
 {
@@ -337,6 +349,7 @@ filebrowser_reset_vector(VECTOR *V)
 	}
 	assert(vector_reset(V));
 }
+
 
 bool
 filebrowser_change_path(FILEBROWSER *fb, ALLEGRO_PATH *np)
@@ -358,6 +371,7 @@ filebrowser_change_path(FILEBROWSER *fb, ALLEGRO_PATH *np)
 	return retval;
 }
 
+
 bool
 filebrowser_select_prev(FILEBROWSER *fb)
 {
@@ -365,7 +379,7 @@ filebrowser_select_prev(FILEBROWSER *fb)
 
 	if (fb->selected == 0)
 		return false;
-		
+
 	if (vector_count(fb->d) > 0) {
 		fb->selected--;
 		return true;
@@ -377,6 +391,7 @@ filebrowser_select_prev(FILEBROWSER *fb)
 
 	return false;
 }
+
 
 bool
 filebrowser_select_prev_items(FILEBROWSER *fb, int percent)
@@ -407,6 +422,7 @@ filebrowser_select_prev_items(FILEBROWSER *fb, int percent)
 	return true;
 }
 
+
 bool
 filebrowser_select_next(FILEBROWSER *fb)
 {
@@ -422,6 +438,7 @@ filebrowser_select_next(FILEBROWSER *fb)
 	else
 		return false;
 }
+
 
 bool
 filebrowser_select_next_items(FILEBROWSER *fb, int percent)
@@ -452,6 +469,7 @@ filebrowser_select_next_items(FILEBROWSER *fb, int percent)
 	return true;
 }
 
+
 #if defined(ALLEGRO_WINDOWS)
 #define CMP(s1, s2, count) (_strnicmp((s1), (s2), (count)))
 #else
@@ -469,7 +487,7 @@ filebrowser_draw(FILEBROWSER *fb)
 	static size_t ustr_offset;
 	static ALLEGRO_PATH *p;
 	static int w, h, maxH; /* max height or bottom */
-	
+
 	static int fx, fy; /* font coord. */
 	static int fpx, fpy; /* font padding */
 	static int fsize;
@@ -632,11 +650,14 @@ filebrowser_draw(FILEBROWSER *fb)
 	fb->eldrawed = drawed;
 }
 
+
 ALLEGRO_BITMAP *
 filebrowser_bitmap(FILEBROWSER *fb)
 {
+	assert(fb != NULL);
 	return fb->b;
 }
+
 
 void
 filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *))
@@ -654,15 +675,17 @@ filebrowser_set_hook(FILEBROWSER *fb, uint8_t id, void(*hook)(FILEBROWSER *))
 	}
 }
 
+
 void
 filebrowser_sort(FILEBROWSER *fb, uint8_t type,
-	int (*cmp)(const void *, const void *))
+	int(*cmp)(const void *, const void *))
 {
 	if (type)
 		vector_qsort(fb->f, cmp);
 	else
 		vector_qsort(fb->d, cmp);
 }
+
 
 ALLEGRO_PATH *
 filebrowser_get_selected_path(FILEBROWSER *fb)
@@ -686,6 +709,7 @@ filebrowser_get_selected_path(FILEBROWSER *fb)
 		return NULL;
 }
 
+
 void
 filebrowser_set_colors(FILEBROWSER *fb, ALLEGRO_COLOR list[])
 {
@@ -694,4 +718,31 @@ filebrowser_set_colors(FILEBROWSER *fb, ALLEGRO_COLOR list[])
 	for (int i = 0; i < FILEBROWSER_COLOR_MAX; i++) {
 		fb->colors[i] = list[i];
 	}
+}
+
+
+ALLEGRO_PATH *
+filebrowser_get_current_path(FILEBROWSER *fb)
+{
+	assert(fb != NULL);
+	return fb->curdir;
+}
+
+
+void
+filebrowser_resize(FILEBROWSER *self, int w, int h)
+{
+	assert(self != NULL);
+
+
+	self->w = w;
+	self->h = h;
+
+	if (self->b != NULL) {
+		al_destroy_bitmap(self->b);
+		self->b = NULL;
+	}
+
+	self->b = al_create_bitmap(self->w, self->h);
+	assert(self->b);
 }

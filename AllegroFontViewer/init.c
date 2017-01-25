@@ -1,13 +1,12 @@
 #include "main.h"
 #include "config.h"
+#include "display.h"
 #include <assert.h>
 
 
 static void set_window_icon(void);
 static void set_timers(void);
 static void die(const char *message);
-static ALLEGRO_DISPLAY * 
-create_display(ALLEGRO_MONITOR_INFO *mon, int w, int h);
 
 
 void
@@ -18,16 +17,17 @@ init(void)
 
 	/* always read configuration files after allegro initialization */
 	CFG = config_new(NULL);
-
-	if (!(monitor = al_malloc(sizeof(ALLEGRO_MONITOR_INFO))))
-		die("Failed to allocate monitor structure.");
 	
-	if (!(display = create_display(monitor, CFG->display.w, CFG->display.h)))
-		die("Failed to create display.");
+	DISPLAY_INFO di = {
+		.fullscreen = CFG->display.fullscreen,
+		.fswindowed = CFG->display.fswindowed,
+		.vsync = CFG->display.vsync,
+		.w = CFG->display.w,
+		.h = CFG->display.h
+	};
 
-	/* we have to update w/h for fullscreen mode */
-	CFG->display.w = al_get_display_width(display);
-	CFG->display.h = al_get_display_height(display);
+	if (!(display = create_display(&di)))
+		die("Failed to create display.");
 
 
 	/* install perepherial */
@@ -107,33 +107,6 @@ set_timers(void)
 		else
 			timers[i] = NULL;
 	}
-}
-
-
-static ALLEGRO_DISPLAY *
-create_display(ALLEGRO_MONITOR_INFO *mon, int w, int h)
-{
-	ALLEGRO_DISPLAY *d = NULL;
-
-	if (mon == NULL)
-		return NULL;
-
-	const int adapter = 0; /* TODO multiplie adapters support? */
-
-	if (CFG->display.fullscreen && al_get_monitor_info(adapter, mon)) {
-		al_set_new_display_flags((CFG->display.fswindowed) 
-			? ALLEGRO_FULLSCREEN_WINDOW
-			: ALLEGRO_FULLSCREEN);
-		al_set_new_display_option(ALLEGRO_VSYNC, (CFG->display.vsync) ? 1 : 2, 
-			ALLEGRO_REQUIRE);
-		d = al_create_display(mon->x2 - mon->x1, mon->y2 - mon->y1);
-	}
-	else {
-		al_set_new_display_flags(ALLEGRO_WINDOWED);
-		d = al_create_display(w, h);
-	}
-
-	return d;
 }
 
 
