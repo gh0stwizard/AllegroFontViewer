@@ -284,7 +284,9 @@ parse_config(CONFIG *c)
 
 
 	/* viewer */
+	assert(VIEWER_MAX_PRESETS <= 10);
 	for (int i = 0; i < VIEWER_MAX_PRESETS; i++) {
+		/* XXX */
 		char preset_str[8] = { 'p', 'r', 'e', 's', 'e', 't', i + 48, '\0' };
 		config_get_value("viewer", preset_str, CONFIG_AS_STRING, &str);
 		c->viewer.presets[i] = al_ustr_new((str == NULL) ? ("") : (str));

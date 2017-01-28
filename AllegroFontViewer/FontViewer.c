@@ -16,8 +16,8 @@ struct _afv_fontviewer {
 	ALLEGRO_BITMAP *b;
 	int w, h;
 	int px, py;
-	uint8_t minsize;
-	uint8_t maxsize;
+	unsigned int minsize;
+	unsigned int maxsize;
 	VECTOR *fonts;
 	ALLEGRO_PATH *path;
 	struct { int onload; } flag;
@@ -315,7 +315,8 @@ fontviewer_get_font_size_mouse(FONTVIEWER *fv, int mx, int my)
 }
 
 void
-fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max)
+fontviewer_set_font_size_limits(FONTVIEWER *fv, unsigned int min, 
+	unsigned int max)
 {
 	assert(fv != NULL);
 	fv->minsize = min;
@@ -333,7 +334,7 @@ fontviewer_get_attr_by_size(FONTVIEWER *fv, int size)
 	count = vector_count(fv->fonts);
 	i = size - fv->minsize;
 
-	if (i >= 0 && i < count) {
+	if (i < count) {
 		assert(vector_get(fv->fonts, i, &font));
 		attr = al_malloc(sizeof(FONT_ATTR));
 		assert(attr != NULL);

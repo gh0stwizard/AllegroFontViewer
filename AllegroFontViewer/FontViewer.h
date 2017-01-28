@@ -51,7 +51,8 @@ int
 fontviewer_get_font_size_mouse(FONTVIEWER *fv, int x, int y);
 
 void
-fontviewer_set_font_size_limits(FONTVIEWER *fv, int min, int max);
+fontviewer_set_font_size_limits(FONTVIEWER *fv, unsigned int min,
+	unsigned int max);
 
 FONT_ATTR *
 fontviewer_get_attr_by_size(FONTVIEWER *fv, int size);

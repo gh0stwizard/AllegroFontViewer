@@ -6,7 +6,7 @@ const int WINDOWED_FLAGS = ALLEGRO_WINDOWED
 	| ALLEGRO_RESIZABLE 
 	| ALLEGRO_GENERATE_EXPOSE_EVENTS;
 
-const int ADAPTER = 0; /* TODO multiplie adapters support? */
+const int ADAPTER = 0; /* TODO multiple adapters support? */
 
 
 ALLEGRO_DISPLAY *

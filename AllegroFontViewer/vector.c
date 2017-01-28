@@ -232,7 +232,7 @@ vector_count(VECTOR *l)
 	if (l != NULL)
 		return l->count;
 	else
-		return -1;
+		return 0;
 }
 
 void

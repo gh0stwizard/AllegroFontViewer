@@ -158,7 +158,7 @@ loop(void)
 	al_register_event_source(event_queue, (ALLEGRO_EVENT_SOURCE *)viewer);
 
 
-	/* show current directory listing immediatly */
+	/* show current directory listing immediately */
 	redraw = filebrowser_browse_path(browser, CFG->browser.startpath);
 
 	for (int i = 0; i < TIMER_MAX; i++) {
@@ -755,7 +755,7 @@ switch_display_mode(void)
 		di.h = h;
 	}
 	else {
-		/* switch to fullscreen mode */
+		/* switch to full screen mode */
 		w = al_get_display_width(display);
 		h = al_get_display_height(display);
 		di.fullscreen = true;

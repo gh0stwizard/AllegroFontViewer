@@ -119,10 +119,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\icu\include;</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
+      <UseFullPaths>false</UseFullPaths>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>..\..\icu\lib;..\..\icu\lib64;</AdditionalLibraryDirectories>
