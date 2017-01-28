@@ -20,7 +20,6 @@
 
 static FILEBROWSER		*browser;
 static FONTVIEWER		*viewer;
-static ALLEGRO_BITMAP	*backbuffer;
 static TYPER			*typer;
 static HELP_MENU		*help;
 static EVLOG			*statuslog;
@@ -39,7 +38,7 @@ static int
 try_load_file(int this_state);
 
 static void
-switch_display_mode(void);
+switch_display_mode(ALLEGRO_DISPLAY **display_ptr);
 
 static void
 unregister_input_events(void);
@@ -120,8 +119,6 @@ loop(void)
 	int w = al_get_display_width(display);
 	int h = al_get_display_height(display) - statusbar_h;
 
-	backbuffer = al_get_backbuffer(display);
-
 	browser = filebrowser_new(w, h);
 	filebrowser_set_colors(browser, CFG->browser.colors);
 	filebrowser_load_fonts(browser, CFG->browser.fonts);
@@ -171,17 +168,6 @@ loop(void)
 		al_wait_for_event(event_queue, &ev);
 
 		switch (ev.type) {
-		case ALLEGRO_EVENT_TIMER:
-		case ALLEGRO_EVENT_MOUSE_AXES:
-			break;
-		default:
-#if defined(_DEBUG)
-			//fprintf(stderr, "event: %d\n", ev.type);
-#endif
-			break;
-		}
-
-		switch (ev.type) {
 		case ALLEGRO_EVENT_DISPLAY_CLOSE:
 			done = true;
 			redraw = false;
@@ -190,16 +176,14 @@ loop(void)
 		case ALLEGRO_EVENT_DISPLAY_SWITCH_IN:
 		case ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY:
 			redraw = true;
-			register_input_events();
 			break;
+
 		case ALLEGRO_EVENT_DISPLAY_SWITCH_OUT:
 		case ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY:
-			unregister_input_events();
 			break;
 
 		case ALLEGRO_EVENT_DISPLAY_EXPOSE:
-			unregister_input_events();
-			al_set_target_bitmap(backbuffer);
+			al_set_target_backbuffer(display);
 			al_clear_to_color(COLOR_NORMAL_BLACK);
 			al_flip_display();
 			break;
@@ -262,17 +246,16 @@ loop(void)
 			case ALLEGRO_KEY_ALT:
 				key_alt = true;
 				break;
+
 			case ALLEGRO_KEY_ENTER:
-				if (key_alt & 0) { /* FIXME FIXME FIXME */
-					unregister_input_events();
+				if (key_alt) {
 					al_unregister_event_source(event_queue,
 						al_get_display_event_source(display));
-					al_destroy_display(display);
-					switch_display_mode();
+
+					switch_display_mode(&display);
 
 					w = al_get_display_width(display);
 					h = al_get_display_height(display) - statusbar_h;
-					backbuffer = al_get_backbuffer(display);
 
 					al_register_event_source(event_queue,
 						al_get_display_event_source(display));
@@ -283,8 +266,6 @@ loop(void)
 					typer_resize(typer, w, h);
 					helpmenu_resize(help, w, h);
 					fontviewer_resize(viewer, w, h);
-
-					register_input_events();
 				}
 			}
 			break;
@@ -300,6 +281,7 @@ loop(void)
 				done = true;
 				redraw = false;
 				break;
+
 			case ALLEGRO_KEY_F1:
 				switch (state) {
 				case STATE_HELP:
@@ -310,6 +292,7 @@ loop(void)
 					break;
 				}
 				break;
+
 			case ALLEGRO_KEY_F12:
 				config_destroy(CFG);
 				CFG = config_new(NULL);
@@ -321,6 +304,7 @@ loop(void)
 				statusline_set_colors(statusbar, CFG->status.colors);
 				helpmenu_draw(help);
 				break;
+
 			case ALLEGRO_KEY_SPACE:
 				switch (state) {
 				case STATE_DIRSLIST:
@@ -332,6 +316,7 @@ loop(void)
 					break;
 				}
 				break;
+
 			case ALLEGRO_KEY_F: /* vim-like; same as ENTER */
 				switch (state) {
 				case STATE_DIRSLIST:
@@ -343,25 +328,29 @@ loop(void)
 					break;
 				}
 				break;
+
 			case ALLEGRO_KEY_ENTER:
-				switch (state) {
-				case STATE_DIRSLIST:
-					state = try_load_file(STATE_DIRSLIST);
-					break;
-				case STATE_ERROR:
-				case STATE_FONTVIEW:
-					state = STATE_DIRSLIST;
-					break;
-				case STATE_TYPING:
-					state = STATE_FONTVIEW;
-					fontviewer_set_text(viewer, typer_get_text(typer));
-					statusline_noblink(statusbar);
-					statusline_type(statusbar, typer_get_text(typer));
-					break;
-				default:
-					break;
+				if (!key_alt) {
+					switch (state) {
+					case STATE_DIRSLIST:
+						state = try_load_file(STATE_DIRSLIST);
+						break;
+					case STATE_ERROR:
+					case STATE_FONTVIEW:
+						state = STATE_DIRSLIST;
+						break;
+					case STATE_TYPING:
+						state = STATE_FONTVIEW;
+						fontviewer_set_text(viewer, typer_get_text(typer));
+						statusline_noblink(statusbar);
+						statusline_type(statusbar, typer_get_text(typer));
+						break;
+					default:
+						break;
+					}
 				}
 				break;
+
 			case ALLEGRO_KEY_I:
 			case ALLEGRO_KEY_INSERT:
 				switch (state) {
@@ -374,6 +363,7 @@ loop(void)
 					break;
 				}
 				break;
+
 			case ALLEGRO_KEY_D:
 			case ALLEGRO_KEY_BACKSPACE:
 				switch (state) {
@@ -386,6 +376,7 @@ loop(void)
 					break;
 				}
 				break;
+
 			case ALLEGRO_KEY_F2:
 				if (state == STATE_FONTVIEW) {
 					typer_set_text(typer, CFG->viewer.presets[0]);
@@ -656,7 +647,7 @@ draw(ALLEGRO_BITMAP *bmp, int w, int h)
 {
 	statusline_draw(statusbar);
 
-	al_set_target_bitmap(backbuffer);
+	al_set_target_backbuffer(display);
 	al_clear_to_color(COLOR_NORMAL_BLACK);
 	if (bmp != NULL)
 		al_draw_bitmap(bmp, 0, 0, 0);
@@ -734,11 +725,11 @@ try_load_file(int this_state)
 
 
 static void
-switch_display_mode(void)
+switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 {
+	static ALLEGRO_DISPLAY *d;
 	static int w, h;
 	static int flags;
-
 
 	flags = al_get_new_display_flags();
 
@@ -763,11 +754,12 @@ switch_display_mode(void)
 		di.vsync = true;
 		di.w = 0;
 		di.h = 0;
-		display = create_display(&di);
 	}
 
-	al_reset_new_display_options();
-	display = create_display(&di);
+	d = *display_ptr;
+	al_destroy_display(d);
+	d = create_display(&di);
+	*display_ptr = d;
 }
 
 

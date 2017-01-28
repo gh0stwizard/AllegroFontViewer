@@ -71,8 +71,10 @@ init(void)
 	set_window_icon();
 
 	for (int i = 0; i < TIMER_MAX; i++) {
-		al_register_event_source(event_queue,
-			al_get_timer_event_source(timers[i]));
+		if (timers[i] != NULL) {
+			al_register_event_source(event_queue,
+				al_get_timer_event_source(timers[i]));
+		}
 	}
 }
 

@@ -21,6 +21,8 @@ create_display(DISPLAY_INFO *di)
 	max_w = monitor.x2 - monitor.x1;
 	max_h = monitor.y2 - monitor.y1;
 
+	al_reset_new_display_options();
+
 	if (di->fullscreen) {
 		al_set_new_display_flags((di->fswindowed)
 			? ALLEGRO_FULLSCREEN_WINDOW
@@ -32,7 +34,6 @@ create_display(DISPLAY_INFO *di)
 	}
 	else {
 		al_set_new_display_flags(WINDOWED_FLAGS);
-		al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_REQUIRE);
 		al_set_new_display_refresh_rate(60);
 		d = al_create_display(di->w, di->h);
 		al_set_window_constraints(d, di->w, di->h, max_w, max_h);
