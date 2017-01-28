@@ -22,7 +22,10 @@ enum {
 typedef struct CONFIG {
 	struct {
 		char *title;
-		char *icon;
+		char *icon;		/* file path to icon file */
+		int x, y;		/* window position */
+		int w, h;
+		bool maximize;	/* is the window maximized? */
 	} window;
 	struct {
 		int		w, h;
@@ -72,11 +75,20 @@ config_new(const char * const file);
 void
 config_destroy(CONFIG *c);
 
-const char *
+bool
 config_get_value(const char *section, const char *key, int type, void *out);
 
 bool
 parse_config(CONFIG *c);
+
+bool
+config_save(CONFIG *c);
+
+void
+config_close(CONFIG *c);
+
+void
+config_update(CONFIG *c, const char *section, const char *k, const char *v);
 
 
 #endif /* _AFV_CONFIG_H__ */

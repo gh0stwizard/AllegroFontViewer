@@ -40,11 +40,20 @@ try_load_file(int this_state);
 static void
 switch_display_mode(ALLEGRO_DISPLAY **display_ptr);
 
+/*
+ * does not working as expected, requires patch & testing from:
+ * https://github.com/liballeg/allegro5/pull/722
+ */
 static void
 unregister_input_events(void);
-
 static void
 register_input_events(void);
+
+static void
+update_configuration_file(void);
+
+static void
+update_window_configuration(void);
 
 
 enum {
@@ -86,11 +95,13 @@ loop(void)
 	ERROR_DATA edata;
 	int fontsize;
 	FONT_ATTR *fontattr;
-	bool redraw = false, done = false;
+	bool redraw = true, done = false;
 	int scrlspeed = CFG->browser.scrollspeed;
 	int state = STATE_DIRSLIST;
 	bool keys[ALLEGRO_KEY_MAX];
 	bool key_alt = false;
+
+	bool wait = false;
 
 	int pressed = 0;
 	int dirslist_buttons[] = {
@@ -200,7 +211,8 @@ loop(void)
 			helpmenu_resize(help, w, h);
 			fontviewer_resize(viewer, w, h);
 
-			register_input_events();
+			update_window_configuration();
+
 			al_acknowledge_resize(ev.display.source);
 			break;
 
@@ -248,11 +260,13 @@ loop(void)
 				break;
 
 			case ALLEGRO_KEY_ENTER:
-				if (key_alt) {
+				if (key_alt && !wait) {
+					wait = true;
 					al_unregister_event_source(event_queue,
 						al_get_display_event_source(display));
 
 					switch_display_mode(&display);
+					key_alt = false;
 
 					w = al_get_display_width(display);
 					h = al_get_display_height(display) - statusbar_h;
@@ -330,7 +344,7 @@ loop(void)
 				break;
 
 			case ALLEGRO_KEY_ENTER:
-				if (!key_alt) {
+				if (!wait) {
 					switch (state) {
 					case STATE_DIRSLIST:
 						state = try_load_file(STATE_DIRSLIST);
@@ -627,8 +641,14 @@ loop(void)
 			default:
 				break;
 			}
+
+			if (wait)
+				wait = false;
 		}
 	}
+
+	update_configuration_file();
+
 #ifndef _NO_ICU
 	fbsort_cleanup();
 #endif
@@ -648,6 +668,7 @@ draw(ALLEGRO_BITMAP *bmp, int w, int h)
 	statusline_draw(statusbar);
 
 	al_set_target_backbuffer(display);
+	al_set_target_bitmap(al_get_backbuffer(display));
 	al_clear_to_color(COLOR_NORMAL_BLACK);
 	if (bmp != NULL)
 		al_draw_bitmap(bmp, 0, 0, 0);
@@ -728,37 +749,45 @@ static void
 switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 {
 	static ALLEGRO_DISPLAY *d;
-	static int w, h;
 	static int flags;
 
-	flags = al_get_new_display_flags();
+
+	d = *display_ptr;
+	flags = al_get_new_display_flags(); /* this is old flags */
+
+	al_destroy_display(d);
 
 	DISPLAY_INFO di;
 
 	if ((flags & ALLEGRO_FULLSCREEN_WINDOW) || (flags & ALLEGRO_FULLSCREEN)) {
+		CFG->display.fullscreen = false;
 		/* switch to windowed mode */
-		w = CFG->display.w;
-		h = CFG->display.h;
-		di.fullscreen = false;
-		di.fswindowed = false;
-		di.vsync = false;
-		di.w = w;
-		di.h = h;
+		di.fullscreen = CFG->display.fullscreen;
+		di.w = CFG->display.w;
+		di.h = CFG->display.h;
+		di.framerate = CFG->display.rate;
+		/* FIXME */
+		di.window_w = 0;
+		di.window_h = 0;
+		di.maximized = false;
+		di.x = INT_MAX;
+		di.y = INT_MAX;
 	}
 	else {
+		CFG->display.fullscreen = true;
 		/* switch to full screen mode */
-		w = al_get_display_width(display);
-		h = al_get_display_height(display);
-		di.fullscreen = true;
-		di.fswindowed = false;
-		di.vsync = true;
-		di.w = 0;
-		di.h = 0;
+		di.fullscreen = CFG->display.fullscreen;
+		di.fswindowed = CFG->display.fswindowed;
+		di.vsync = CFG->display.vsync;
+		di.framerate = CFG->display.rate;
 	}
 
-	d = *display_ptr;
-	al_destroy_display(d);
 	d = create_display(&di);
+	assert(d != NULL);
+
+	if (bitmaps[BITMAP_ICON] != NULL)
+		al_set_display_icon(d, bitmaps[BITMAP_ICON]);
+
 	*display_ptr = d;
 }
 
@@ -766,22 +795,87 @@ switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 static void
 unregister_input_events(void)
 {
-	/*
-	 * does not working as expected, requires patch & testing from:
-	 * https://github.com/liballeg/allegro5/pull/722
-	 */
-	 //al_unregister_event_source(event_queue, al_get_keyboard_event_source());
-	 //al_unregister_event_source(event_queue, al_get_mouse_event_source());
+	al_unregister_event_source(event_queue, al_get_keyboard_event_source());
+	al_unregister_event_source(event_queue, al_get_mouse_event_source());
 }
 
 
 static void
 register_input_events(void)
 {
-	/*
-	 * does not working as expected, requires patch & testing from:
-	 * https://github.com/liballeg/allegro5/pull/722
-	 */
-	 //al_register_event_source(event_queue, al_get_keyboard_event_source());
-	 //al_register_event_source(event_queue, al_get_mouse_event_source());
+	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	al_register_event_source(event_queue, al_get_mouse_event_source());
+}
+
+
+static void
+update_configuration_file(void)
+{
+	static ALLEGRO_PATH *p;
+	static ALLEGRO_USTR *u;
+	static int i, max_w, max_h;
+
+
+	u = al_ustr_new("");
+
+	p = filebrowser_get_current_path(browser);
+	config_update(CFG, "browser", "startpath",
+		al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP));
+
+	config_update(CFG, "display", "fullscreen",
+		(CFG->display.fullscreen) ? "1" : "0");
+	config_update(CFG, "display", "fswindowed",
+		(CFG->display.fswindowed) ? "1" : "0");
+
+	i = al_get_display_flags(display);
+	config_update(CFG, "window", "maximize",
+		(i & ALLEGRO_MAXIMIZED) ? "1" : "0");
+
+	if (CFG->display.fullscreen || CFG->window.maximize) {
+
+	}
+	else {
+		assert(get_max_resolution(&max_w, &max_h));
+		int w = al_get_display_width(display);
+		int h = al_get_display_height(display);
+
+		if ((w < max_w) && (h < max_h)) {
+			int x, y;
+			al_get_window_position(display, &x, &y);
+			al_ustr_appendf(u, "%d", x);
+			config_update(CFG, "window", "x", al_cstr(u));
+			al_ustr_truncate(u, 0);
+
+			al_ustr_appendf(u, "%d", y);
+			config_update(CFG, "window", "y", al_cstr(u));
+			al_ustr_truncate(u, 0);
+
+			al_ustr_appendf(u, "%d", w);
+			config_update(CFG, "window", "width", al_cstr(u));
+			al_ustr_truncate(u, 0);
+
+			al_ustr_appendf(u, "%d", h);
+			config_update(CFG, "window", "height", al_cstr(u));
+			al_ustr_truncate(u, 0);
+		}
+	}
+
+	al_ustr_free(u);
+}
+
+
+static void
+update_window_configuration(void)
+{
+	static int x, y;
+
+	CFG->window.maximize = (al_get_display_flags(display) & ALLEGRO_MAXIMIZED);
+
+	if (!CFG->display.fullscreen && !CFG->window.maximize) {
+		al_get_window_position(display, &x, &y);
+		CFG->window.x = x;
+		CFG->window.y = y;
+		CFG->window.w = al_get_display_width(display);
+		CFG->window.h = al_get_display_height(display);
+	}
 }

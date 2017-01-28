@@ -19,11 +19,17 @@ init(void)
 	CFG = config_new(NULL);
 	
 	DISPLAY_INFO di = {
-		.fullscreen = CFG->display.fullscreen,
-		.fswindowed = CFG->display.fswindowed,
-		.vsync = CFG->display.vsync,
-		.w = CFG->display.w,
-		.h = CFG->display.h
+		.fullscreen	= CFG->display.fullscreen,
+		.fswindowed	= CFG->display.fswindowed,
+		.vsync		= CFG->display.vsync,
+		.w			= CFG->display.w,
+		.h			= CFG->display.h,
+		.x			= CFG->window.x,
+		.y			= CFG->window.y,
+		.window_w	= CFG->window.w,
+		.window_h	= CFG->window.h,
+		.maximized	= CFG->window.maximize,
+		.framerate	= CFG->display.rate
 	};
 
 	if (!(display = create_display(&di)))
