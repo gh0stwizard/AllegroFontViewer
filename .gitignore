@@ -243,4 +243,5 @@ ModelManifest.xml
 
 # unix
 *.o
+AllegroFontViewer/build
 

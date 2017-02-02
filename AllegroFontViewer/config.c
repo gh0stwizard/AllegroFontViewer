@@ -40,7 +40,9 @@ static ALLEGRO_CONFIG *defaults, *current;
 CONFIG *
 config_new(const char * const file)
 {
+#ifndef _DEBUG
 	static ALLEGRO_PATH *p;
+#endif
 
 	CONFIG *cfg = al_calloc(1, sizeof(CONFIG));
 	assert(cfg != NULL);
@@ -478,7 +480,9 @@ parse_config(CONFIG *c)
 bool
 config_save(CONFIG *c)
 {
+#ifndef _DEBUG
 	static ALLEGRO_PATH *p;
+#endif
 	static const char *file;
 	static bool retval;
 	ALLEGRO_CONFIG *merged;
