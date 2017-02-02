@@ -16,6 +16,11 @@
 #if defined(_DEBUG)
 #include <stdio.h>
 #endif
+#if defined(ALLEGRO_WINDOWS)
+#include <string.h>
+#else
+#include <strings.h>
+#endif
 
 
 static FILEBROWSER		*browser;
@@ -27,7 +32,7 @@ static ERROR			*errwin;
 static STATUSLINE		*statusbar;
 
 
-#define SAYF(fmt, ...) (evlog_pushf(statuslog, EVENT_SYSTEM_STATUS, fmt, __VA_ARGS__))
+#define SAYF(fmt, ...) (evlog_pushf(statuslog, EVENT_SYSTEM_STATUS, fmt, ## __VA_ARGS__))
 #define SAY(us) (evlog_push(statuslog, EVENT_SYSTEM_STATUS, us))
 
 
@@ -494,7 +499,7 @@ loop(void)
 
 				switch (state) {
 				case STATE_DIRSLIST:
-					for (int i = 0; i < ARRAY_SIZE(dirslist_buttons); i++) {
+					for (size_t i = 0; i < ARRAY_SIZE(dirslist_buttons); i++) {
 						if (al_key_down(&kbState, dirslist_keycodes[i]))
 							pressed += dirslist_buttons[i];
 					}
@@ -665,6 +670,7 @@ loop(void)
 static void
 draw(ALLEGRO_BITMAP *bmp, int w, int h)
 {
+    (void)w;
 	statusline_draw(statusbar);
 
 	al_set_target_backbuffer(display);
@@ -819,16 +825,16 @@ update_configuration_file(void)
 	u = al_ustr_new("");
 
 	p = filebrowser_get_current_path(browser);
-	config_update(CFG, "browser", "startpath",
+	config_update("browser", "startpath",
 		al_path_cstr(p, ALLEGRO_NATIVE_PATH_SEP));
 
-	config_update(CFG, "display", "fullscreen",
+	config_update("display", "fullscreen",
 		(CFG->display.fullscreen) ? "1" : "0");
-	config_update(CFG, "display", "fswindowed",
+	config_update("display", "fswindowed",
 		(CFG->display.fswindowed) ? "1" : "0");
 
 	i = al_get_display_flags(display);
-	config_update(CFG, "window", "maximize",
+	config_update("window", "maximize",
 		(i & ALLEGRO_MAXIMIZED) ? "1" : "0");
 
 	if (CFG->display.fullscreen || CFG->window.maximize) {
@@ -843,19 +849,19 @@ update_configuration_file(void)
 			int x, y;
 			al_get_window_position(display, &x, &y);
 			al_ustr_appendf(u, "%d", x);
-			config_update(CFG, "window", "x", al_cstr(u));
+			config_update("window", "x", al_cstr(u));
 			al_ustr_truncate(u, 0);
 
 			al_ustr_appendf(u, "%d", y);
-			config_update(CFG, "window", "y", al_cstr(u));
+			config_update("window", "y", al_cstr(u));
 			al_ustr_truncate(u, 0);
 
 			al_ustr_appendf(u, "%d", w);
-			config_update(CFG, "window", "width", al_cstr(u));
+			config_update("window", "width", al_cstr(u));
 			al_ustr_truncate(u, 0);
 
 			al_ustr_appendf(u, "%d", h);
-			config_update(CFG, "window", "height", al_cstr(u));
+			config_update("window", "height", al_cstr(u));
 			al_ustr_truncate(u, 0);
 		}
 	}

@@ -206,7 +206,6 @@ filebrowser_browse_path(FILEBROWSER *fb, const char *path)
 {
 	static ALLEGRO_FS_ENTRY *entry;
 	static const char *ename;
-	static uint32_t emode;
 	static bool retval;
 	extern int fs_entry_cb(ALLEGRO_FS_ENTRY *, void *);
 	static size_t selected, startpos; /* temp. buffer for new values */
@@ -305,7 +304,7 @@ filebrowser_browse_selected(FILEBROWSER *fb)
 	selected = fb->selected;
 
 	if (selected < fb->counter.directories) {
-		assert(vector_get(fb->d, selected, &p));
+		assert(vector_get(fb->d, selected, (void **)&p));
 		return filebrowser_change_path(fb, p);
 	}
 	else
@@ -343,7 +342,7 @@ filebrowser_reset_vector(VECTOR *V)
 	static ALLEGRO_PATH *p;
 
 	for (i = 0, count = vector_count(V); i < count; i++) {
-		assert(vector_get(V, i, &p));
+		assert(vector_get(V, i, (void **)&p));
 		al_destroy_path(p);
 		p = NULL;
 	}
@@ -473,7 +472,7 @@ filebrowser_select_next_items(FILEBROWSER *fb, int percent)
 #if defined(ALLEGRO_WINDOWS)
 #define CMP(s1, s2, count) (_strnicmp((s1), (s2), (count)))
 #else
-#define CMP(s1, s2, count) (strnicmp((s1), (s2), (count)))
+#define CMP(s1, s2, count) (strncasecmp((s1), (s2), (count)))
 #endif
 
 void
@@ -585,7 +584,7 @@ filebrowser_draw(FILEBROWSER *fb)
 	ustr_offset = al_ustr_size(ustr);
 	drawed = 0;
 	for (i = pos, count = vector_count(V); i < count && y1 < maxH; i++) {
-		assert(vector_get(V, i, &p));
+		assert(vector_get(V, i, (void **)&p));
 		cstr = al_get_path_component(p, -1);
 		al_ustr_truncate(ustr, (int)ustr_offset);
 		al_ustr_append_cstr(ustr, cstr);
@@ -614,7 +613,7 @@ filebrowser_draw(FILEBROWSER *fb)
 	/* adjust position and selected file position according to dir. counter */
 	selected -= count;
 	for (k = i - count, count = vector_count(V); k < count && y1 < maxH; k++) {
-		assert(vector_get(V, k, &p));
+		assert(vector_get(V, k, (void **)&p));
 		cstr = al_get_path_filename(p);
 		al_ustr_truncate(ustr, (int)ustr_offset);
 		al_ustr_append_cstr(ustr, cstr);
@@ -702,7 +701,7 @@ filebrowser_get_selected_path(FILEBROWSER *fb)
 
 	if (selected >= num_dirs) {
 		selected -= num_dirs;
-		assert(vector_get(fb->f, selected, &p));
+		assert(vector_get(fb->f, selected, (void **)&p));
 		return al_clone_path(p);
 	}
 	else

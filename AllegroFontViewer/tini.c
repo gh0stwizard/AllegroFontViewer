@@ -6,13 +6,13 @@ tini(void)
 {
 	/* TODO: monitor, camera */
 
-	for (int i = 0; i < ARRAY_SIZE(timers); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(timers); i++) {
 		if (timers[i] != NULL)
 			al_destroy_timer(timers[i]);
 		timers[i] = NULL;
 	}
 
-	for (int i = 0; i < ARRAY_SIZE(bitmaps); i++) {
+	for (size_t i = 0; i < ARRAY_SIZE(bitmaps); i++) {
 		if (bitmaps[i] != NULL)
 			al_destroy_bitmap(bitmaps[i]);
 		bitmaps[i] = NULL;

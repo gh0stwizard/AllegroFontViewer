@@ -85,10 +85,7 @@ bool
 config_save(CONFIG *c);
 
 void
-config_close(CONFIG *c);
-
-void
-config_update(CONFIG *c, const char *section, const char *k, const char *v);
+config_update(const char *section, const char *k, const char *v);
 
 
 #endif /* _AFV_CONFIG_H__ */

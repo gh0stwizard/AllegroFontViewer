@@ -85,16 +85,6 @@ config_new(const char * const file)
 
 
 void
-config_close(CONFIG *c)
-{
-	al_destroy_config(defaults);
-	al_destroy_config(current);
-	defaults = NULL;
-	current = NULL;
-}
-
-
-void
 config_destroy(CONFIG *c)
 {
 	if (c == NULL)
@@ -147,10 +137,11 @@ _get_value(const char *section, const char *key)
 #else
 #define ATOI(x) (strtol(x, NULL, 10))
 #define ATOF(x) (strtod(x, NULL))
-#define STRNCPY(a, b, c, d) (do { \
-	len = strlen(c); \
-	strncpy(a, c, ((len >= d) ? d : len)); \
-} while (0))
+#define STRNCPY(a, b, c, d) \
+do { \
+    len = strlen(c); \
+    strncpy(a, c, ((len >= d) ? d : len)); \
+} while (0)
 #endif
 
 #define STR_BUFSIZE 1023
@@ -514,9 +505,10 @@ config_save(CONFIG *c)
 
 
 void
-config_update(CONFIG *c, const char *section, const char *k, const char *v)
+config_update(const char *section, const char *k, const char *v)
 {
 	assert(k != NULL);
 	assert(current != NULL);
 	al_set_config_value(current, section, k, v);
 }
+
