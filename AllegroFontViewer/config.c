@@ -141,7 +141,7 @@ _get_value(const char *section, const char *key)
 #define ATOF(x) (strtod(x, NULL))
 #define STRNCPY(a, b, c, d) \
 do { \
-    len = strlen(c); \
+    len = strlen(c) + 1; \
     strncpy(a, c, ((len >= d) ? d : len)); \
 } while (0)
 #endif
