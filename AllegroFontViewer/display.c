@@ -6,9 +6,8 @@
 #endif
 
 
-const int WINDOWED_FLAGS = ALLEGRO_WINDOWED
-| ALLEGRO_RESIZABLE
-| ALLEGRO_GENERATE_EXPOSE_EVENTS;
+const int WINDOWED_FLAGS = ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
+    | ALLEGRO_GENERATE_EXPOSE_EVENTS;
 
 const int ADAPTER = 0; /* TODO multiple adapters support? */
 
@@ -31,7 +30,7 @@ create_display(DISPLAY_INFO *di)
 			al_set_new_display_flags(ALLEGRO_FULLSCREEN);
 
 		if (di->vsync)
-			al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_REQUIRE);
+			al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
 		else
 			al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_SUGGEST);
 
@@ -91,3 +90,4 @@ get_max_resolution(int *max_w, int *max_h)
 	else
 		return false;
 }
+
