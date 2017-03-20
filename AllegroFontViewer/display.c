@@ -16,28 +16,40 @@ ALLEGRO_DISPLAY *
 create_display(DISPLAY_INFO *di)
 {
 	ALLEGRO_DISPLAY *d = NULL;
-	static int w, h, max_w, max_h;
+	int w, h, max_w, max_h;
 
 	assert(get_max_resolution(&max_w, &max_h));
 
 	al_reset_new_display_options();
-	al_set_new_display_refresh_rate(di->framerate);
 
 	if (di->fullscreen) {
-		if (di->fswindowed)
+		if (di->fswindowed) {
 			al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
-		else
+		}
+		else {
 			al_set_new_display_flags(ALLEGRO_FULLSCREEN);
 
-		if (di->vsync)
-			al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
-		else
-			al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_SUGGEST);
+			/**
+			 * FIXME: create_display crashes under linux if framerate >= 60.0.
+			 * When framerate 59.0 all is OK.
+			 */
+#ifdef __linux__
+			if (di->framerate >= 1.0)
+				di->framerate = di->framerate - 1.0;
+#endif
+			al_set_new_display_refresh_rate(di->framerate);
+
+			if (di->vsync)
+				al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
+			else
+				al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_SUGGEST);
+		}
 
 #if defined(_DEBUG)
-		fprintf(stderr, "fullscreen w: %d h: %d, fps: %.2f\n",
-			max_w, max_h, di->framerate);
+		fprintf(stderr, "fullscreen w: %d h: %d, windowed: %s fps: %.2f\n",
+			max_w, max_h, di->fswindowed ? "Yes" : "No", di->framerate);
 #endif
+
 		d = al_create_display(max_w, max_h);
 	}
 	else {
@@ -64,7 +76,8 @@ create_display(DISPLAY_INFO *di)
 			h = di->h;
 
 #if defined(_DEBUG)
-		fprintf(stderr, "window w: %d h: %d\n", w, h);
+		fprintf(stderr, "window w: %d h: %d maximize: %s\n",
+				w, h, di->maximized ? "Yes" : "No");
 #endif
 
 		d = al_create_display(w, h);

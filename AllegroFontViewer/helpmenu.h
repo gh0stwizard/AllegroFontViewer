@@ -18,25 +18,25 @@ enum {
 };
 
 
-HELP_MENU *
+extern HELP_MENU *
 helpmenu_new(int width, int height);
 
-void
+extern void
 helpmenu_destroy(HELP_MENU *h);
 
-ALLEGRO_BITMAP *
+extern ALLEGRO_BITMAP *
 helpmenu_bitmap(HELP_MENU *h);
 
-void
+extern void
 helpmenu_draw(HELP_MENU *help);
 
-void
+extern void
 helpmenu_set_colors(HELP_MENU *h, ALLEGRO_COLOR list[]);
 
-void
+extern void
 helpmenu_load_fonts(HELP_MENU *help, FONT fontlist[]);
 
-void
+extern void
 helpmenu_resize(HELP_MENU *self, int w, int h);
 
 

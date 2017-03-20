@@ -10,9 +10,7 @@
 #ifndef _NO_ICU
 #include "FileBrowserSort.h"
 #endif
-
 #include <assert.h>
-
 #if defined(_DEBUG)
 #include <stdio.h>
 #endif
@@ -51,6 +49,7 @@ switch_display_mode(ALLEGRO_DISPLAY **display_ptr);
  */
 static void
 unregister_input_events(void);
+
 static void
 register_input_events(void);
 
@@ -155,7 +154,6 @@ loop(void)
 	help = helpmenu_new(w, h);
 	helpmenu_load_fonts(help, CFG->help.fonts);
 	helpmenu_set_colors(help, CFG->help.colors);
-	helpmenu_draw(help);
 
 	statuslog = evlog_new(EVENT_TYPE_STATUS);
 	statusbar = statusline_new(w, statusbar_h, border_px, border_py);
@@ -264,7 +262,7 @@ loop(void)
 				key_alt = true;
 				break;
 
-			case ALLEGRO_KEY_ENTER:
+			case ALLEGRO_KEY_ENTER: /* fullscreen switcher */
 				if (key_alt && !wait) {
 					wait = true;
 					al_unregister_event_source(event_queue,
@@ -312,7 +310,7 @@ loop(void)
 				}
 				break;
 
-			case ALLEGRO_KEY_F12:
+			case ALLEGRO_KEY_F12: /* reload configuration */
 				config_destroy(CFG);
 				CFG = config_new(NULL);
 				scrlspeed = CFG->browser.scrollspeed;
@@ -321,7 +319,6 @@ loop(void)
 				error_set_colors(errwin, CFG->error.colors);
 				helpmenu_set_colors(help, CFG->help.colors);
 				statusline_set_colors(statusbar, CFG->status.colors);
-				helpmenu_draw(help);
 				break;
 
 			case ALLEGRO_KEY_SPACE:
@@ -637,6 +634,7 @@ loop(void)
 				break;
 			case STATE_HELP:
 				statusline_noblink(statusbar);
+				helpmenu_draw(help);
 				draw(helpmenu_bitmap(help), w, h);
 				break;
 			case STATE_ERROR:
@@ -771,22 +769,50 @@ switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 		di.fullscreen = CFG->display.fullscreen;
 		di.w = CFG->display.w;
 		di.h = CFG->display.h;
-		di.framerate = CFG->display.rate;
+		di.framerate = -1;
+		di.vsync = false;
 		/* FIXME */
 		di.window_w = 0;
 		di.window_h = 0;
-		di.maximized = false;
+		di.maximized = CFG->window.maximize;
 		di.x = INT_MAX;
 		di.y = INT_MAX;
 	}
 	else {
-		CFG->display.fullscreen = true;
 		/* switch to full screen mode */
+		CFG->display.fullscreen = true;
 		di.fullscreen = CFG->display.fullscreen;
 		di.fswindowed = CFG->display.fswindowed;
-		di.vsync = CFG->display.vsync;
-		di.framerate = CFG->display.rate;
+		di.maximized = false;
+
+		if (! CFG->display.fswindowed) {
+			/**
+			 * FIXME: create_display crashes under linux if framerate >= 60.0.
+			 * When framerate 59.0 all is OK.
+			 */
+			di.vsync = CFG->display.vsync;
+#ifdef __linux__
+			di.framerate = CFG->display.rate - 1.0;
+#else
+			di.framerate = CFG->display.rate;
+#endif
+		}
+		else {
+			/* Fullscreen windowed */
+			di.vsync = false;
+			di.framerate = 0;
+		}
 	}
+
+#if defined(_DEBUG)
+	fprintf (stderr, "switch_display_mode:\n");
+	fprintf (stderr, "  Fullscreen: %s\n", di.fullscreen ? "Yes" : "No");
+	fprintf (stderr, "  Fullscreen Windowed: %s\n",
+			CFG->display.fswindowed ? "Yes" : "No");
+	fprintf (stderr, "  VSync: %s\n", di.vsync ? "Yes" : "No");
+	fprintf (stderr, "  Framerate: %.2f\n", di.framerate);
+	fprintf (stderr, "  Maximized: %s\n", di.maximized ? "Yes" : "No");
+#endif
 
 	d = create_display(&di);
 	assert(d != NULL);

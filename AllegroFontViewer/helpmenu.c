@@ -1,8 +1,10 @@
 #include "helpmenu.h"
 #include "colors.h"
-
 #include <assert.h>
 
+#if defined(_DEBUG)
+#include <stdio.h>
+#endif
 
 //typedef struct HELP_MENU_DATA {
 //
@@ -31,38 +33,42 @@ HELP_MENU *
 helpmenu_new(int width, int height)
 {
 	HELP_MENU *help = al_calloc(1, sizeof(HELP_MENU));
+
 	assert(help != NULL);
 
 	help->w = width;
 	help->h = height;
 	help->b = al_create_bitmap(help->w, help->h);
+
 	assert(help->b != NULL);
 
 	return help;
 }
 
+
 void
 helpmenu_destroy(HELP_MENU *h)
 {
-	if (h == NULL)
-		return;
-
-	al_free(h);
+	if (h != NULL)
+		al_free(h);
 }
+
 
 ALLEGRO_BITMAP *
 helpmenu_bitmap(HELP_MENU *help)
 {
 	assert(help != NULL);
+
 	return help->b;
 }
 
+
 static ALLEGRO_BITMAP *
-create_hotkey_bitmap(ALLEGRO_FONT *font, const char *text, ALLEGRO_COLOR bg,
-	ALLEGRO_COLOR fg)
+create_hotkey_bitmap(ALLEGRO_FONT *font, const char *text,
+					ALLEGRO_COLOR bg, ALLEGRO_COLOR fg)
 {
-	static int w, h;
-	static ALLEGRO_BITMAP *bmp;
+	int w, h;
+	ALLEGRO_BITMAP *bmp;
 
 	w = al_get_text_width(font, text);
 	h = al_get_font_line_height(font);
@@ -74,6 +80,7 @@ create_hotkey_bitmap(ALLEGRO_FONT *font, const char *text, ALLEGRO_COLOR bg,
 	return bmp;
 }
 
+
 typedef struct KLDAT {
 	int xdelta;
 	ALLEGRO_FONT *font;
@@ -84,14 +91,18 @@ typedef struct KLDAT {
 	int x2, y2;
 } KLDAT;
 
+
 static int
 draw_keylist(int start, int end, char *desc[], int keys[], KLDAT *data)
 {
-	static ALLEGRO_BITMAP *keybmp;
+	ALLEGRO_BITMAP *keybmp;
 
 	for (int i = start; (i < end) && (desc[i] != NULL); i++) {
-		keybmp = create_hotkey_bitmap(data->font, al_keycode_to_name(keys[i]),
-			data->keybg, data->keyfg);
+		keybmp = create_hotkey_bitmap(
+					data->font,
+					al_keycode_to_name(keys[i]),
+					data->keybg,
+					data->keyfg);
 		al_set_target_bitmap(data->bb);
 		al_draw_text(data->font, data->fg, data->x1, data->y1, 0, desc[i]);
 		al_draw_bitmap(keybmp, data->x2, data->y2, 0);
@@ -103,13 +114,14 @@ draw_keylist(int start, int end, char *desc[], int keys[], KLDAT *data)
 	return data->y1;
 }
 
+
 void
 helpmenu_draw(HELP_MENU *help)
 {
-	static ALLEGRO_COLOR bg, fg, color_border;
-	static ALLEGRO_FONT *font;
-	static int w, h;
-	static ALLEGRO_BITMAP *b;
+	ALLEGRO_COLOR bg, fg, color_border;
+	ALLEGRO_FONT *font;
+	int w, h;
+	ALLEGRO_BITMAP *b;
 
 	assert(help != NULL);
 
@@ -127,17 +139,19 @@ helpmenu_draw(HELP_MENU *help)
 	const int py = 2;
 
 	int fh = help->fonts[HELP_MENU_FONT_DEFAULT].height;
-	int lh = help->fonts[HELP_MENU_FONT_DEFAULT].size / 2 + py;
+	int lh = (help->fonts[HELP_MENU_FONT_DEFAULT].size / 2) + py;
 
 	al_set_target_bitmap(b);
 	al_clear_to_color(bg);
+
+	/* draw border */
 	al_draw_rectangle(py, lh, w - py, h, color_border, 1);
 
 #define HELP_TITLE "Help"
 
 	int tw = al_get_text_width(font, HELP_TITLE);
-	int center = w / 2 - tw / 2;
-	al_draw_filled_rectangle(center - 1, py, (w / 2) + (tw / 2) + 1, lh, bg);
+	int center = (w / 2) - (tw / 2);
+	al_draw_filled_rectangle(center - 1, py, (w / 2) + (tw / 2) + 1, 2 * lh, bg);
 	al_draw_text(font, fg, center, py, 0, HELP_TITLE);
 
 #undef HELP_TITLE
@@ -232,8 +246,9 @@ helpmenu_draw(HELP_MENU *help)
 	dat.y1 = lh;
 	dat.y2 = lh;
 	lh = draw_keylist(13, 17, desc, keys, &dat);
-	//	al_draw_text(font, fg, px, lh, 0, "Point a Mouse to a font information");
+	//al_draw_text(font, fg, px, lh, 0, "Point a Mouse to a font information");
 }
+
 
 void
 helpmenu_set_colors(HELP_MENU *h, ALLEGRO_COLOR list[])
@@ -245,13 +260,15 @@ helpmenu_set_colors(HELP_MENU *h, ALLEGRO_COLOR list[])
 	}
 }
 
-void
+
+extern void
 helpmenu_load_fonts(HELP_MENU *help, FONT fontlist[])
 {
-	static FONT fi;
-	static ALLEGRO_FONT *font;
+	FONT fi;
+	ALLEGRO_FONT *font;
 
 	assert(help != NULL);
+
 	for (int i = 0; i < HELP_MENU_FONT_MAX; i++) {
 		fi = fontlist[i];
 		font = al_load_font(fi.file, fi.size, fi.flags);
@@ -267,7 +284,7 @@ helpmenu_load_fonts(HELP_MENU *help, FONT fontlist[])
 }
 
 
-void
+extern void
 helpmenu_resize(HELP_MENU *self, int w, int h)
 {
 	assert(self != NULL);
@@ -281,5 +298,5 @@ helpmenu_resize(HELP_MENU *self, int w, int h)
 	}
 
 	self->b = al_create_bitmap(self->w, self->h);
-	assert(self->b);
+	assert(self->b != NULL);
 }

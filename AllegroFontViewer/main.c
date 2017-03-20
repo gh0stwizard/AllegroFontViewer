@@ -1,13 +1,10 @@
 #include "main.h"
-
 #include <assert.h>
 
 
 extern int
-main(int argc, const char * const argv[])
+main()
 {
-    (void)argc;
-    (void)argv;
 	init();
 	loop();
 	assert(config_save(CFG));

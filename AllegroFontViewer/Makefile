@@ -25,7 +25,7 @@ OBJECTS = $(patsubst %.c,%.o,$(SOURCES))
 
 all: $(TARGET)
 
-devel: CFLAGS += -g
+devel: CFLAGS += -D_DEBUG -g
 devel: all
 
 $(TARGET): $(OBJECTS)
