@@ -243,5 +243,9 @@ ModelManifest.xml
 
 # unix
 *.o
+
+# build dir
+
 AllegroFontViewer/build
 
+AllegroFontViewer/settings.ini

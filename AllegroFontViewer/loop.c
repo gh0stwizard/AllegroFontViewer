@@ -752,16 +752,14 @@ try_load_file(int this_state)
 static void
 switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 {
-	static ALLEGRO_DISPLAY *d;
-	static int flags;
+	ALLEGRO_DISPLAY *d = *display_ptr;
+	int flags;
+	DISPLAY_INFO di;
 
-
-	d = *display_ptr;
 	flags = al_get_new_display_flags(); /* this is old flags */
 
+	/* destroy current window */
 	al_destroy_display(d);
-
-	DISPLAY_INFO di;
 
 	if ((flags & ALLEGRO_FULLSCREEN_WINDOW) || (flags & ALLEGRO_FULLSCREEN)) {
 		CFG->display.fullscreen = false;
@@ -769,7 +767,7 @@ switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 		di.fullscreen = CFG->display.fullscreen;
 		di.w = CFG->display.w;
 		di.h = CFG->display.h;
-		di.framerate = -1;
+		di.framerate = 0;
 		di.vsync = false;
 		/* FIXME */
 		di.window_w = 0;
@@ -783,25 +781,8 @@ switch_display_mode(ALLEGRO_DISPLAY **display_ptr)
 		CFG->display.fullscreen = true;
 		di.fullscreen = CFG->display.fullscreen;
 		di.fswindowed = CFG->display.fswindowed;
-		di.maximized = false;
-
-		if (! CFG->display.fswindowed) {
-			/**
-			 * FIXME: create_display crashes under linux if framerate >= 60.0.
-			 * When framerate 59.0 all is OK.
-			 */
-			di.vsync = CFG->display.vsync;
-#ifdef __linux__
-			di.framerate = CFG->display.rate - 1.0;
-#else
-			di.framerate = CFG->display.rate;
-#endif
-		}
-		else {
-			/* Fullscreen windowed */
-			di.vsync = false;
-			di.framerate = 0;
-		}
+		di.vsync = CFG->display.vsync;
+		di.framerate = CFG->display.rate;
 	}
 
 #if defined(_DEBUG)

@@ -35,9 +35,10 @@ create_display(DISPLAY_INFO *di)
 			 */
 #ifdef __linux__
 			if (di->framerate >= 1.0)
-				di->framerate = di->framerate - 1.0;
+				al_set_new_display_refresh_rate(di->framerate - 1.0);
+#else
+				al_set_new_display_refresh_rate(di->framerate);
 #endif
-			al_set_new_display_refresh_rate(di->framerate);
 
 			if (di->vsync)
 				al_set_new_display_option(ALLEGRO_VSYNC, 1, ALLEGRO_SUGGEST);
